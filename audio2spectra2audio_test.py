@@ -19,7 +19,7 @@ def fake_processing(spectrogram: np.ndarray, converter: SpectrogramConverter = C
     return audio
 
 
-def play_audio(audio: AudioSegment):
+def play_audio(audio: AudioSegment) -> None:
     print('playing a sound')
     simpleaudio.play_buffer(audio.raw_data,
                             num_channels=audio.channels,
@@ -29,19 +29,19 @@ def play_audio(audio: AudioSegment):
     time.sleep(5.09)
 
 
-def transformer(eeg_buffer: Queue, audio_buffer: Queue):
+def transformer(eeg_queue: Queue, audio_queue: Queue) -> None:
     while True:
-        if eeg_buffer:
-            eeg_data = eeg_buffer.get()
+        if eeg_queue:
+            eeg_data = eeg_queue.get()
             audio = fake_processing(eeg_data)
-            audio_buffer.put(audio)
+            audio_queue.put(audio)
         time.sleep(0.01)
 
 
-def player(audio_buffer: Queue):
+def player(audio_queue: Queue) -> None:
     while True:
-        if audio_buffer:
-            audio = audio_buffer.get()
+        if audio_queue:
+            audio = audio_queue.get()
             play_audio(audio)
 
 
@@ -55,13 +55,13 @@ if __name__ == '__main__':
     test_spectrogram = CONVERTER.spectrogram_from_audio(test_audio)[0]
     spectrogram_parts = u.cut_array(test_spectrogram.T, test_spectrogram.shape[1] - 512, 512)
 
-    eeg_buffer, audio_buffer = Queue(), Queue()
-    transformer_process = Process(target=transformer, args=(eeg_buffer, audio_buffer))
-    player_process = Process(target=player, args=(audio_buffer,))
+    eeg_queue, audio_queue = Queue(), Queue()
+    transformer_process = Process(target=transformer, args=(eeg_queue, audio_queue))
+    player_process = Process(target=player, args=(audio_queue,))
 
     player_process.start()
     transformer_process.start()
 
     for spectrogram in spectrogram_parts:
-        eeg_buffer.put(spectrogram)
+        eeg_queue.put(spectrogram)
         time.sleep(0.1)
