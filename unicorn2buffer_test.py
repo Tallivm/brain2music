@@ -1,27 +1,24 @@
 import time
+import multiprocessing
 
-from multiprocessing import Queue, Process
-from unicorn_utils import connect_to_unicorn, start_eeg_acquisition, stop_eeg_acquisition
+from loops import acquire_eeg
 
 
-def print_got_data(eeg_queue):
+def print_got_data(eeg_queue: multiprocessing.Queue):
     while True:
-        if eeg_queue:
-            print(f'{len(eeg_queue)} records accumulated')
-        time.sleep(0.01)
+        if not eeg_queue.empty():
+            print(f'{eeg_queue.qsize()} records accumulated')
+        print('Waiting for the recording to start...')
+        time.sleep(0.5)
 
 
 if __name__ == '__main__':
-    device = connect_to_unicorn()
 
-    eeg_queue = Queue()
-    n_scans = 1
+    RECORD_SIZE_S = 1
 
-    try:
-        acquisition_process = Process(target=start_eeg_acquisition, args=(device, eeg_queue, n_scans))
-        printing_process = Process(target=print_got_data, args=(eeg_queue,))
+    eeg_queue = multiprocessing.Queue()
+    acquisition_process = multiprocessing.Process(target=acquire_eeg, args=(eeg_queue, RECORD_SIZE_S))
+    printing_process = multiprocessing.Process(target=print_got_data, args=(eeg_queue,))
 
-        acquisition_process.start()
-        printing_process.start()
-    finally:
-        stop_eeg_acquisition(device)
+    acquisition_process.start()
+    printing_process.start()

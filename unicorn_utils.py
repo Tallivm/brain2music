@@ -1,4 +1,3 @@
-from multiprocessing import Queue
 import numpy as np
 
 import UnicornPy
@@ -10,9 +9,8 @@ def connect_to_unicorn() -> UnicornPy.Unicorn:
     return device
 
 
-def calculate_buffer_len(device: UnicornPy.Unicorn, n_scans: int) -> bytearray:
-    num_channels = device.GetNumberOfAcquiredChannels()
-    receive_buffer_length = n_scans * num_channels * 4
+def calculate_buffer_len(n_scans: int, n_channels: int, buffer_size: int = 10) -> int:
+    receive_buffer_length = n_scans * n_channels * buffer_size
     return receive_buffer_length
 
 
@@ -20,17 +18,11 @@ def buffer2numpy(buffer: bytearray, n_scans: int, n_channels: int) -> np.ndarray
     return np.frombuffer(buffer, dtype=np.float32, count=n_channels * n_scans)
 
 
-def start_eeg_acquisition(device: UnicornPy.Unicorn, queue: Queue, n_scans: int) -> None:
-    n_channels = device.GetNumberOfAcquiredChannels()
-    buffer_len = calculate_buffer_len(device, n_scans)
-    buffer = bytearray(buffer_len)
-
-    device.StartAcquisition(bool_testSignalEnabledFlag=False)
-
-    while True:
-        device.GetData(n_scans, buffer, buffer_len)
-        data = buffer2numpy(buffer, n_scans, n_channels)
-        queue.put(data)
+def acquire_eeg_data_record(device, n_scans: int, buffer: bytearray, buffer_len: int,
+                            n_channels: int) -> np.ndarray:
+    device.GetData(n_scans, buffer, buffer_len)
+    data = buffer2numpy(buffer, n_scans, n_channels)
+    return data
 
 
 def stop_eeg_acquisition(device: UnicornPy.Unicorn) -> None:

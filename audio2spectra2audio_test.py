@@ -4,59 +4,40 @@ import time
 
 import numpy as np
 from pydub import AudioSegment
-import simpleaudio
 
-import utils as u
+import data_utils as u
 from custom_riffusion import SpectrogramConverter, SpectrogramParams
+from loops import player
 
 
-CONVERTER = SpectrogramConverter(params=SpectrogramParams())
-
-
-def fake_processing(spectrogram: np.ndarray, converter: SpectrogramConverter = CONVERTER) -> AudioSegment:
+def fake_processing(spectrogram: np.ndarray, converter: SpectrogramConverter) -> AudioSegment:
     audio = converter.audio_from_spectrogram(spectrogram.T)
     print('processed a spectrogram')
     return audio
 
 
-def play_audio(audio: AudioSegment) -> None:
-    print('playing a sound')
-    simpleaudio.play_buffer(audio.raw_data,
-                            num_channels=audio.channels,
-                            bytes_per_sample=audio.sample_width,
-                            sample_rate=audio.frame_rate
-                            )
-    time.sleep(5.09)
-
-
-def transformer(eeg_queue: Queue, audio_queue: Queue) -> None:
+def fake_transformer(eeg_queue: Queue, audio_queue: Queue, converter: SpectrogramConverter) -> None:
     while True:
         if eeg_queue:
             eeg_data = eeg_queue.get()
-            audio = fake_processing(eeg_data)
+            audio = fake_processing(eeg_data, converter)
             audio_queue.put(audio)
         time.sleep(0.01)
 
 
-def player(audio_queue: Queue) -> None:
-    while True:
-        if audio_queue:
-            audio = audio_queue.get()
-            play_audio(audio)
-
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
+    converter = SpectrogramConverter(params=SpectrogramParams())
 
     logging.info('Loading sample WAV file...')
     test_audio = AudioSegment.from_wav("../../other/Oriental_Dance.wav")
 
     logging.info('Getting its spectrograms...')
-    test_spectrogram = CONVERTER.spectrogram_from_audio(test_audio)[0]
+    test_spectrogram = converter.spectrogram_from_audio(test_audio)[0]
     spectrogram_parts = u.cut_array(test_spectrogram.T, test_spectrogram.shape[1] - 512, 512)
 
     eeg_queue, audio_queue = Queue(), Queue()
-    transformer_process = Process(target=transformer, args=(eeg_queue, audio_queue))
+    transformer_process = Process(target=fake_transformer, args=(eeg_queue, audio_queue, converter))
     player_process = Process(target=player, args=(audio_queue,))
 
     player_process.start()

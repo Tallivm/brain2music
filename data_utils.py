@@ -3,6 +3,10 @@ from scipy import signal
 from scipy.io import loadmat
 import pywt
 import skimage
+from pydub import AudioSegment
+from UnicornPy import SamplingRate
+
+from custom_riffusion import SpectrogramConverter
 
 from typing import Any
 
@@ -50,7 +54,7 @@ def wavelet_transform(channel: np.ndarray, freqs: np.ndarray, sample_rate: int, 
     return transformed
 
 
-def spectrogram_as_image(spectrogram: np.ndarray, to_uint: bool = True) -> np.ndarray:
+def spectrogram_as_image(spectrogram: np.ndarray, to_uint: bool = False) -> np.ndarray:
     res = ((spectrogram - spectrogram.min()) / (spectrogram.max() - spectrogram.min()))
     if to_uint:
         res = 255 - (res * 255).astype('uint8')
@@ -62,3 +66,23 @@ def resize_image(img: np.ndarray, width: int = None, height: int = None) -> np.n
     height = img.shape[0] if height is None else height
     width = img.shape[1] if width is None else width
     return skimage.transform.resize(img, (height, width), anti_aliasing=False)
+
+
+def combine_spectrograms(spectrograms: list[np.ndarray]) -> np.ndarray:
+    return np.mean(spectrograms, axis=0)
+
+
+def eeg2spectrogram(eeg: np.ndarray) -> np.ndarray:
+    spectrograms = []
+    for ch in range(eeg.shape[1]):
+        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=np.arange(1, 30), sample_rate=SamplingRate,
+                                        cwavelet='morl')
+        spectrograms.append(spectrogram)
+    joined_spectrogram = combine_spectrograms(spectrograms)
+    joined_spectrogram = spectrogram_as_image(joined_spectrogram, to_uint=True)
+    joined_spectrogram = resize_image(joined_spectrogram, 512, 512)
+    return joined_spectrogram
+
+
+def spectrogram2audio(spectrogram: np.ndarray, converter: SpectrogramConverter) -> AudioSegment:
+    return converter.audio_from_spectrogram(spectrogram)
