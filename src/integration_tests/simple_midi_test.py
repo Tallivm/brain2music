@@ -1,13 +1,10 @@
 import numpy as np
-from matplotlib import pyplot as plt
 import skimage
 from PIL import Image
 
-from data_utils import wavelet_transform, resize_image, spectrogram_as_image
-from feature_utils import get_sinewave
-from custom_riffusion import SpectrogramConverter, SpectrogramImageConverter, SpectrogramParams, spectrogram_from_image
-from audio_utils import play_audio, spectrogram2audio
-
+from src.image_data.data_utils import resize_image, spectrogram_as_image
+from src.riffusion.custom_riffusion import SpectrogramImageConverter, SpectrogramParams
+from src.audio_data.audio_utils import play_audio
 
 if __name__ == '__main__':
 
@@ -70,7 +67,7 @@ if __name__ == '__main__':
     converter = SpectrogramImageConverter(params=params)
     audio = converter.audio_from_spectrogram_image(loaded_img)
 
-    # audio = spectrogram2audio(spectrogram.copy(), converter)
+    # audio_data = spectrogram2audio(spectrogram.copy(), converter)
     print('playing...')
     play_audio(audio)
 

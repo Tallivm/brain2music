@@ -3,8 +3,8 @@ from multiprocessing import Queue
 
 import numpy as np
 
-from data_utils import eeg2spectrogram, spectrogram2audio
-from audio_utils import play_audio
+from src.image_data.data_utils import eeg2spectrogram
+from src.audio_data.audio_utils import play_audio, spectrogram2audio
 
 
 def eeg2img_loop(eeg_queue: Queue, img_queue: Queue, freq: np.ndarray, fs: int) -> None:
@@ -31,12 +31,12 @@ def player(audio_queue: Queue) -> None:
     while True:
         if not audio_queue.empty():
             audio = audio_queue.get()
-            print('Will play audio now')
+            print('Will play audio_data now')
             play_audio(audio)
 
 
 def acquire_eeg(queue: Queue, record_size: int, fs: int) -> None:
-    from unicorn_utils import connect_to_unicorn, calculate_buffer_len, acquire_eeg_data_record, reshape_eeg_record
+    from src.unicorn.unicorn_utils import connect_to_unicorn, calculate_buffer_len, acquire_eeg_data_record, reshape_eeg_record
     print(f'Connecting to Unicorn...')
     device = connect_to_unicorn()
     n_scans = record_size * fs

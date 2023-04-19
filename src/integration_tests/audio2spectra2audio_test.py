@@ -5,9 +5,9 @@ import time
 import numpy as np
 from pydub import AudioSegment
 
-import data_utils as u
-from custom_riffusion import SpectrogramConverter, SpectrogramParams
-from loops import player
+from src.image_data import data_utils as u
+from src.riffusion.custom_riffusion import SpectrogramConverter, SpectrogramParams
+from src.loops import player
 
 
 def fake_processing(spectrogram: np.ndarray, converter: SpectrogramConverter) -> AudioSegment:

@@ -5,8 +5,8 @@ import torchaudio
 import pydub
 from PIL import Image
 
-import torch_utils
-import audio_utils
+from src.torch import torch_utils
+from src.audio_data import audio_utils
 
 from typing import Optional
 
@@ -149,14 +149,14 @@ class SpectrogramImageConverter:
 
         if self.p.stereo:
             if segment.channels == 1:
-                print("WARNING: Mono audio but stereo=True, cloning channel")
+                print("WARNING: Mono audio_data but stereo=True, cloning channel")
                 segment = segment.set_channels(2)
             elif segment.channels > 2:
-                print("WARNING: Multi channel audio, reducing to stereo")
+                print("WARNING: Multi channel audio_data, reducing to stereo")
                 segment = segment.set_channels(2)
         else:
             if segment.channels > 1:
-                print("WARNING: Stereo audio but stereo=False, setting to mono")
+                print("WARNING: Stereo audio_data but stereo=False, setting to mono")
                 segment = segment.set_channels(1)
 
         spectrogram = self.converter.spectrogram_from_audio(segment)

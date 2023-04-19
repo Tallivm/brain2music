@@ -4,10 +4,10 @@ from multiprocessing import Queue, Process
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from custom_riffusion import SpectrogramConverter, SpectrogramParams
-from data_utils import segment_eeg
-from loops import eeg2img_loop, img2audio_loop, player
-from constants import FREQUENCY
+from src.riffusion.custom_riffusion import SpectrogramConverter, SpectrogramParams
+from src.image_data.data_utils import segment_eeg
+from src.loops import eeg2img_loop, img2audio_loop, player
+from src.constants import FREQUENCY
 
 
 def img_saver(img_queue: Queue) -> None:

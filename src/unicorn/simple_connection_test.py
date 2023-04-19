@@ -1,6 +1,6 @@
 import UnicornPy
 
-import unicorn_utils as uu
+from src.unicorn import unicorn_utils as uu
 
 
 def test_eeg_acquisition(device: UnicornPy.Unicorn, n_scans: int, n_data_calls: int) -> None:

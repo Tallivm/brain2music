@@ -1,8 +1,8 @@
 from multiprocessing import Queue, Process
 
-from loops import eeg2img_loop, img2audio_loop, player, acquire_eeg
-from custom_riffusion import SpectrogramConverter, SpectrogramParams
-from constants import FREQUENCY
+from src.loops import eeg2img_loop, img2audio_loop, player, acquire_eeg
+from src.riffusion.custom_riffusion import SpectrogramConverter, SpectrogramParams
+from src.constants import FREQUENCY
 
 
 if __name__ == '__main__':
