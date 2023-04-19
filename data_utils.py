@@ -41,6 +41,7 @@ def cut_array(arr: np.ndarray, max_range: int, range_step: int) -> list[np.ndarr
 
 def segment_eeg(eeg: np.ndarray, sample_rate: int, segment_len_s: int, overlap_s: int = 0) -> list[np.ndarray]:
     """Data should be of shape: (signal, channels)"""
+    # TODO: check if works correctly, especially the step parameter
     eeg_len = eeg.shape[0]
     sample_len = sample_rate * segment_len_s
     overlap_len = overlap_s * sample_rate
@@ -72,10 +73,10 @@ def combine_spectrograms(spectrograms: list[np.ndarray]) -> np.ndarray:
     return np.mean(spectrograms, axis=0)
 
 
-def eeg2spectrogram(eeg: np.ndarray, freqs: np.ndarray) -> np.ndarray:
+def eeg2spectrogram(eeg: np.ndarray, freqs: np.ndarray, fs: int) -> np.ndarray:
     spectrograms = []
     for ch in range(eeg.shape[1]):
-        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=freqs, sample_rate=SamplingRate,
+        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=freqs, sample_rate=fs,
                                         cwavelet='morl')
         spectrograms.append(spectrogram)
     joined_spectrogram = combine_spectrograms(spectrograms)

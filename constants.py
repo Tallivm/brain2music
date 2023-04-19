@@ -1,7 +1,7 @@
 import numpy as np
 
 
-FREQS = np.linspace(1, 40, 512)
+FREQUENCY = np.linspace(1, 40, 512)
 
 
 # FREQS = {

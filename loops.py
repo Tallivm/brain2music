@@ -2,33 +2,26 @@ import time
 from multiprocessing import Queue
 
 import numpy as np
-import UnicornPy
 
 from data_utils import eeg2spectrogram, spectrogram2audio
 from audio_utils import play_audio
-from unicorn_utils import connect_to_unicorn, calculate_buffer_len, acquire_eeg_data_record, reshape_eeg_record
-from custom_riffusion import SpectrogramConverter
 
 
-def transformer(eeg_queue: Queue, audio_queue: Queue, freqs: np.ndarray, converter: SpectrogramConverter) -> None:
+def eeg2img_loop(eeg_queue: Queue, img_queue: Queue, freq: np.ndarray, fs: int) -> None:
     while True:
         if not eeg_queue.empty():
             eeg_data = eeg_queue.get()
-            spectrogram = eeg2spectrogram(eeg_data, freqs)
-            audio = spectrogram2audio(spectrogram, converter)
-            audio_queue.put(audio)
-            print('Audio segment produced')
+            spectrogram = eeg2spectrogram(eeg_data, freq, fs)
+            img_queue.put(spectrogram)
+            print('Spectrogram produced')
         time.sleep(0.5)
 
 
-def transformer_w_img(eeg_queue: Queue, audio_queue: Queue, img_queue: Queue,
-                      freqs: np.ndarray, converter: SpectrogramConverter) -> None:
+def img2audio_loop(img_queue: Queue, audio_queue: Queue, converter) -> None:
     while True:
-        if not eeg_queue.empty():
-            eeg_data = eeg_queue.get()
-            spectrogram = eeg2spectrogram(eeg_data, freqs)
-            img_queue.put(spectrogram)
-            audio = spectrogram2audio(spectrogram, converter)
+        if not img_queue.empty():
+            img = img_queue.get()
+            audio = spectrogram2audio(img, converter)
             audio_queue.put(audio)
             print('Audio segment produced')
         time.sleep(0.5)
@@ -42,16 +35,11 @@ def player(audio_queue: Queue) -> None:
             play_audio(audio)
 
 
-def acquire_eeg(queue: Queue, record_size: int, channels_to_acquire: list[int]) -> None:
+def acquire_eeg(queue: Queue, record_size: int, fs: int) -> None:
+    from unicorn_utils import connect_to_unicorn, calculate_buffer_len, acquire_eeg_data_record, reshape_eeg_record
     print(f'Connecting to Unicorn...')
     device = connect_to_unicorn()
-    n_scans = record_size * UnicornPy.SamplingRate
-
-    # channels = device.GetConfiguration().Channels
-    # new_config = UnicornPy.AmplifierConfiguration()
-    # new_config.Channels = [c for i, c in enumerate(channels) if i in channels_to_acquire]
-    # device.SetConfiguration(new_config)
-
+    n_scans = record_size * fs
     n_channels = device.GetNumberOfAcquiredChannels()
     buffer_len = calculate_buffer_len(n_scans, n_channels, buffer_size=4)
     print(f'Buffer length will be: {buffer_len}')
