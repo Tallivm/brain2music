@@ -17,14 +17,14 @@ def img_saver(img_queue: Queue) -> None:
             img = img_queue.get()
             print('Saving the image')
             plt.imshow(img)
-            plt.savefig(f'samples/{i}_offline_spectrogram.png')
+            plt.savefig(f'../../samples/{i}_offline_spectrogram.png')
             plt.close()
             i += 1
         time.sleep(0.3)
 
 
 if __name__ == "__main__":
-    data_path = 'samples/UnicornRecorder_20220625_121622.csv'
+    data_path = '../../samples/UnicornRecorder_20220625_121622.csv'
     converter = SpectrogramConverter(SpectrogramParams())
     channels_to_acquire = [0, 1, 2]
     fs = 250

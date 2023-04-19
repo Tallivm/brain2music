@@ -20,6 +20,7 @@ def fake_transformer(eeg_queue: Queue, audio_queue: Queue, converter: Spectrogra
     while True:
         if eeg_queue:
             eeg_data = eeg_queue.get()
+            assert eeg_data.shape == (512, 512)
             audio = fake_processing(eeg_data, converter)
             audio_queue.put(audio)
         time.sleep(0.01)
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     converter = SpectrogramConverter(params=SpectrogramParams())
 
     logging.info('Loading sample WAV file...')
-    test_audio = AudioSegment.from_wav("../../other/Oriental_Dance.wav")
+    test_audio = AudioSegment.from_wav("../../samples/Oriental_Dance.wav")
 
     logging.info('Getting its spectrograms...')
     test_spectrogram = converter.spectrogram_from_audio(test_audio)[0]

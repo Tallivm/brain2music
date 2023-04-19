@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     skimage.io.imshow(spectrogram, aspect='equal')
 
-    png_path = 'samples/test_spectrogram.png'
+    png_path = '../../samples/test_spectrogram.png'
     skimage.io.imsave(png_path, spectrogram)
 
     loaded_img = Image.open(png_path)
