@@ -1,6 +1,7 @@
 import time
 from multiprocessing import Queue
 
+import numpy as np
 import UnicornPy
 
 from data_utils import eeg2spectrogram, spectrogram2audio
@@ -9,11 +10,24 @@ from unicorn_utils import connect_to_unicorn, calculate_buffer_len, acquire_eeg_
 from custom_riffusion import SpectrogramConverter
 
 
-def transformer(eeg_queue: Queue, audio_queue: Queue, converter: SpectrogramConverter) -> None:
+def transformer(eeg_queue: Queue, audio_queue: Queue, freqs: np.ndarray, converter: SpectrogramConverter) -> None:
     while True:
         if not eeg_queue.empty():
             eeg_data = eeg_queue.get()
-            spectrogram = eeg2spectrogram(eeg_data)
+            spectrogram = eeg2spectrogram(eeg_data, freqs)
+            audio = spectrogram2audio(spectrogram, converter)
+            audio_queue.put(audio)
+            print('Audio segment produced')
+        time.sleep(0.5)
+
+
+def transformer_w_img(eeg_queue: Queue, audio_queue: Queue, img_queue: Queue,
+                      freqs: np.ndarray, converter: SpectrogramConverter) -> None:
+    while True:
+        if not eeg_queue.empty():
+            eeg_data = eeg_queue.get()
+            spectrogram = eeg2spectrogram(eeg_data, freqs)
+            img_queue.put(spectrogram)
             audio = spectrogram2audio(spectrogram, converter)
             audio_queue.put(audio)
             print('Audio segment produced')

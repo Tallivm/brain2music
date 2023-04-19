@@ -72,10 +72,10 @@ def combine_spectrograms(spectrograms: list[np.ndarray]) -> np.ndarray:
     return np.mean(spectrograms, axis=0)
 
 
-def eeg2spectrogram(eeg: np.ndarray) -> np.ndarray:
+def eeg2spectrogram(eeg: np.ndarray, freqs: np.ndarray) -> np.ndarray:
     spectrograms = []
     for ch in range(eeg.shape[1]):
-        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=np.arange(1, 30), sample_rate=SamplingRate,
+        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=freqs, sample_rate=SamplingRate,
                                         cwavelet='morl')
         spectrograms.append(spectrogram)
     joined_spectrogram = combine_spectrograms(spectrograms)

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(len(waves), 1, figsize=(8, len(waves) * 2), sharex=True)
 
     for i, (name, wave) in enumerate(waves.items()):
-        wavfile.write(f'samples/{name}.wav', fs, wave.astype(np.int16))
+        wavfile.write(f'samples/wave_sounds/{name}.wav', fs, wave.astype(np.int16))
 
         ax[i].plot(wave)
         ax[i].set_title(name)

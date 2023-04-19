@@ -1,14 +1,20 @@
-FREQS = {
-    'delta': (1, 4),
-    'theta': (4, 8),
-    'alpha': (8, 12),
-    'beta1': (12, 16),
-    'beta2': (16, 24),
-    'beta3': (24, 30),
-    'gamma1': (30, 40),
-    'gamma2': (40, 50),
-    'gamma3': (50, 60),
-}
+import numpy as np
+
+
+FREQS = np.linspace(1, 40, 512)
+
+
+# FREQS = {
+#     'delta': (1, 4),
+#     'theta': (4, 8),
+#     'alpha': (8, 12),
+#     'beta1': (12, 16),
+#     'beta2': (16, 24),
+#     'beta3': (24, 30),
+#     'gamma1': (30, 40),
+#     'gamma2': (40, 50),
+#     'gamma3': (50, 60),
+# }
 
 NOTE2FREQ = {
     'C0 ': 16.35,
