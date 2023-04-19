@@ -7,3 +7,4 @@ matplotlib==3.7.1
 pandas==2.0.0
 torchaudio==2.0.1+cu118
 torch==2.0.0+cu118
+Pillow==9.5.0

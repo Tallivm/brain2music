@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torchaudio
 import pydub
+from PIL import Image
 
 import torch_utils
 import audio_utils
@@ -132,3 +133,104 @@ class SpectrogramConverter:
         amplitudes_linear = self.inverse_mel_scaler(amplitudes_mel)
         waveform = self.inverse_spectrogram_func(amplitudes_linear)
         return waveform
+
+
+class SpectrogramImageConverter:
+    def __init__(self, params: SpectrogramParams, device: str = "cuda"):
+        self.p = params
+        self.device = device
+        self.converter = SpectrogramConverter(params=params, device=device)
+
+    def spectrogram_image_from_audio(
+        self,
+        segment: pydub.AudioSegment,
+    ) -> Image.Image:
+        assert int(segment.frame_rate) == self.p.sample_rate, "Sample rate mismatch"
+
+        if self.p.stereo:
+            if segment.channels == 1:
+                print("WARNING: Mono audio but stereo=True, cloning channel")
+                segment = segment.set_channels(2)
+            elif segment.channels > 2:
+                print("WARNING: Multi channel audio, reducing to stereo")
+                segment = segment.set_channels(2)
+        else:
+            if segment.channels > 1:
+                print("WARNING: Stereo audio but stereo=False, setting to mono")
+                segment = segment.set_channels(1)
+
+        spectrogram = self.converter.spectrogram_from_audio(segment)
+
+        image = image_from_spectrogram(
+            spectrogram,
+            power=self.p.power_for_image,
+        )
+
+        return image
+
+    def audio_from_spectrogram_image(self, image: Image.Image, max_value: float = 30e6) -> pydub.AudioSegment:
+        spectrogram = spectrogram_from_image(
+            image,
+            max_value=max_value,
+            power=self.p.power_for_image,
+            stereo=self.p.stereo,
+        )
+        segment = self.converter.audio_from_spectrogram(spectrogram)
+        return segment
+
+
+def spectrogram_from_image(image: Image.Image, power: float = 0.25, stereo: bool = False,
+                           max_value: float = 30e6) -> np.ndarray:
+    # Convert to RGB if single channel
+    if image.mode in ("P", "L"):
+        image = image.convert("RGB")
+    # Flip Y
+    image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+    # Munge channels into a numpy array of (channels, frequency, time)
+    data = np.array(image).transpose(2, 0, 1)
+    if stereo:
+        # Take the G and B channels as done in image_from_spectrogram
+        data = data[[1, 2], :, :]
+    else:
+        data = data[0:1, :, :]
+
+    # Convert to floats
+    data = data.astype(np.float32)
+    # Invert
+    data = 255 - data
+    # Rescale to 0-1
+    data = data / 255
+    # Reverse the power curve
+    data = np.power(data, 1 / power)
+    # Rescale to max value
+    data = data * max_value
+
+    return data
+
+
+def image_from_spectrogram(spectrogram: np.ndarray, power: float = 0.25) -> Image.Image:
+    # Rescale to 0-1
+    max_value = np.max(spectrogram)
+    data = spectrogram / max_value
+    # Apply the power curve
+    data = np.power(data, power)
+    # Rescale to 0-255
+    data = data * 255
+    # Invert
+    data = 255 - data
+    # Convert to uint8
+    data = data.astype(np.uint8)
+
+    # Munge channels into a PIL image
+    if data.shape[0] == 1:
+        image = Image.fromarray(data[0], mode="L").convert("RGB")
+    elif data.shape[0] == 2:
+        data = np.array([np.zeros_like(data[0]), data[0], data[1]]).transpose(1, 2, 0)
+        image = Image.fromarray(data, mode="RGB")
+    else:
+        raise NotImplementedError(f"Unsupported number of channels: {data.shape[0]}")
+
+    # Flip Y
+    image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+    return image
