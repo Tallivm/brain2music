@@ -17,6 +17,10 @@ def audio_from_waveform(samples: np.ndarray, sample_rate: int, normalize: bool =
     return AudioSegment.from_wav(wav_bytes)
 
 
+def spectrogram2audio(spectrogram: np.ndarray, converter) -> AudioSegment:
+    return converter.audio_from_spectrogram(spectrogram)
+
+
 def play_audio(audio: AudioSegment, sleep_time: float = 5.09) -> None:
     print('playing a sound')
     simpleaudio.play_buffer(audio.raw_data,

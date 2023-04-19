@@ -10,7 +10,7 @@ import audio_utils
 from typing import Optional
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class SpectrogramParams:
     stereo: bool = False
 

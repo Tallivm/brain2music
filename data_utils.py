@@ -3,10 +3,6 @@ from scipy import signal
 from scipy.io import loadmat
 import pywt
 import skimage
-from pydub import AudioSegment
-from UnicornPy import SamplingRate
-
-from custom_riffusion import SpectrogramConverter
 
 from typing import Any
 
@@ -57,6 +53,7 @@ def wavelet_transform(channel: np.ndarray, freqs: np.ndarray, sample_rate: int, 
 
 def spectrogram_as_image(spectrogram: np.ndarray, to_uint: bool = False) -> np.ndarray:
     res = ((spectrogram - spectrogram.min()) / (spectrogram.max() - spectrogram.min()))
+    res = res.clip(0, 1)
     if to_uint:
         res = 255 - (res * 255).astype('uint8')
     res = np.flip(res)
@@ -85,5 +82,5 @@ def eeg2spectrogram(eeg: np.ndarray, freqs: np.ndarray, fs: int) -> np.ndarray:
     return joined_spectrogram
 
 
-def spectrogram2audio(spectrogram: np.ndarray, converter: SpectrogramConverter) -> AudioSegment:
-    return converter.audio_from_spectrogram(spectrogram)
+def hz2mel(x: float) -> float:
+    return 2595 * np.log10(1 + x / 700)
