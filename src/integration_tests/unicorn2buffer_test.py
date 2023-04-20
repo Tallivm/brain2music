@@ -1,7 +1,7 @@
 import time
 import multiprocessing
 
-from src.loops import acquire_eeg
+from src.unicorn.eeg_aquisition import acquire_eeg
 
 
 def print_got_data(eeg_queue: multiprocessing.Queue):
