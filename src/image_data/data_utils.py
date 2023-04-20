@@ -1,4 +1,6 @@
+import math
 import numpy as np
+import pandas as pd
 from scipy import signal
 from scipy.io import loadmat
 import pywt
@@ -6,7 +8,8 @@ import pywt
 from typing import Any
 
 from src.image_data.image_utils import resize_image
-from src.constants import VERTICAL_RESOLUTION, HORIZONTAL_RESOLUTION
+from src.constants import VERTICAL_RESOLUTION, HORIZONTAL_RESOLUTION, SAMPLE_EEG_FILEPATH, SAMPLE_RATE, SEGMENT_LEN_S, \
+    FREQUENCIES
 
 
 def load_eeg_mat_file(filepath: str) -> dict[int, dict[str, Any]]:
@@ -58,8 +61,18 @@ def spectrogram_as_image(spectrogram: np.ndarray, to_uint: bool = False) -> np.n
     res = res.clip(0, 1)
     if to_uint:
         res = 255 - (res * 255).astype('uint8')
-    res = np.flip(res)
     return res
+
+
+def spectrogram_for_converter(spectrogram: np.ndarray, power: float = 0.25,
+                              max_power: float = 30e6) -> np.ndarray:
+    data = spectrogram_as_image(spectrogram, to_uint=True)
+    # data = np.flipud(data)
+    data = np.expand_dims(data, 0).astype(np.float32)
+    # data = 255 - data
+    # data = data / 255
+    data = np.power(data, 1 / power)
+    return data * max_power
 
 
 def combine_spectrograms(spectrograms: list[np.ndarray]) -> np.ndarray:
@@ -84,5 +97,36 @@ def hz2mel(x: float) -> float:
     return 2595 * np.log10(1 + x / 700)
 
 
-def get_sinewave(x: np.ndarray, freq: float, fs: int, amplitude: float) -> np.ndarray:
+def generate_sinewave(x: np.ndarray, freq: float, fs: int, amplitude: float) -> np.ndarray:
     return amplitude * np.sin(2 * np.pi * freq * x / fs)
+
+
+def get_sample_spectrogram() -> np.ndarray:
+    segment = pd.read_csv(SAMPLE_EEG_FILEPATH).to_numpy()[:SEGMENT_LEN_S * SAMPLE_RATE, :1]
+    spectrogram = eeg2spectrogram(segment, FREQUENCIES, SAMPLE_RATE, to_abs=True)
+    return spectrogram
+
+
+def find_nearest_pos(arr: np.array, values: list[float]) -> list[int]:
+    idx = np.searchsorted(arr, values, side="left")
+    pos = []
+    for value, i in zip(values, idx):
+        if i > 0 and (i == len(arr) or math.fabs(value - arr[i-1]) < math.fabs(value - arr[i])):
+            pos.append(i - 1)
+        else:
+            pos.append(i)
+    return pos
+
+
+def get_note_positions(note_freqs: list[float], min_freq: float, max_freq: float) -> list[int]:
+    freqs = np.linspace(min_freq, max_freq, VERTICAL_RESOLUTION)
+    pos = find_nearest_pos(freqs, note_freqs)
+    return pos
+
+
+def leave_notes_in_spectrogram(spectrogram: np.ndarray, note_freqs: list[float],
+                               min_freq: float, max_freq: float) -> np.ndarray:
+    note_positions = get_note_positions(note_freqs, min_freq, max_freq)
+    mask = np.ones((VERTICAL_RESOLUTION, HORIZONTAL_RESOLUTION))
+    mask[note_positions] = spectrogram[note_positions]
+    return mask

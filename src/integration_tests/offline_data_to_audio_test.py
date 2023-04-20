@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from src.riffusion.custom_riffusion import SpectrogramConverter, SpectrogramParams
 from src.image_data.data_utils import segment_eeg
 from src.loops import eeg2img_loop, img2audio_loop, player_loop
-from src.constants import FREQUENCIES, SAMPLE_RATE, SEGMENT_LEN_S
+from src.constants import FREQUENCIES, SAMPLE_RATE, SEGMENT_LEN_S, SAMPLE_EEG_FILEPATH
 
 
 def img_saver(img_queue: Queue) -> None:
@@ -24,7 +24,7 @@ def img_saver(img_queue: Queue) -> None:
 
 
 if __name__ == "__main__":
-    data_path = '../../samples/UnicornRecorder_20220625_121622.csv'
+    data_path = SAMPLE_EEG_FILEPATH
     converter = SpectrogramConverter(SpectrogramParams())
     channels_to_acquire = [0, 1, 2]
 

@@ -8,7 +8,7 @@ from pydub import AudioSegment
 from src.image_data import data_utils as u
 from src.riffusion.custom_riffusion import SpectrogramConverter, SpectrogramParams
 from src.loops import player_loop
-from src.constants import HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION
+from src.constants import HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION, SAMPLE_AUDIO_FILEPATH
 
 
 def fake_processing(spectrogram: np.ndarray, converter: SpectrogramConverter) -> AudioSegment:
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     converter = SpectrogramConverter(params=SpectrogramParams())
 
     logging.info('Loading sample WAV file...')
-    test_audio = AudioSegment.from_wav("../../samples/Oriental_Dance.wav")
+    test_audio = AudioSegment.from_wav(SAMPLE_AUDIO_FILEPATH)
 
     logging.info('Getting its spectrograms...')
     test_spectrogram = converter.spectrogram_from_audio(test_audio)[0]

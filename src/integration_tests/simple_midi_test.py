@@ -1,74 +1,41 @@
 import numpy as np
 import skimage
-from PIL import Image
 
-from src.image_data.data_utils import resize_image, spectrogram_as_image
+from src.image_data.data_utils import leave_notes_in_spectrogram, get_sample_spectrogram, spectrogram_for_converter
 from src.riffusion.custom_riffusion import SpectrogramImageConverter, SpectrogramParams
 from src.audio_data.audio_utils import play_audio
+from src.constants import NOTE2FREQ, NOTE_FREQUENCIES
+
+from matplotlib import pyplot as plt
+
 
 if __name__ == '__main__':
 
-    MIN_FREQ = 32
-    MAX_FREQ = 1046
-    BEAT_RESOLUTION = 8
+    brain_freq2note = {f: note for f, note in zip(NOTE_FREQUENCIES, NOTE2FREQ.keys())}
+    MIN_NOTE_FREQ = NOTE2FREQ['C3 ']
+    MAX_NOTE_FREQ = NOTE2FREQ['C7 ']
 
-    note2freq = {
-        'C4 ': 261.63,
-        'C#4': 277.18,
-        'D4 ': 293.66,
-        'D#4': 311.13,
-        'E4 ': 329.63,
-        'F4 ': 349.23,
-        'F#4': 369.99,
-        'G4 ': 392.00,
-    }
+    print('Getting images...')
+    sample_spectrogram = get_sample_spectrogram()
+    skimage.io.imshow(sample_spectrogram)
+    skimage.io.imsave('../../samples/sample_spectrogram.png', sample_spectrogram)
 
-    canvas = np.zeros((MAX_FREQ - MIN_FREQ, BEAT_RESOLUTION))
+    notes = [NOTE2FREQ['C3 '], NOTE2FREQ['C4 '], NOTE2FREQ['E4 ']]
+    sample_spectrogram_with_notes = leave_notes_in_spectrogram(sample_spectrogram, notes, MIN_NOTE_FREQ, MAX_NOTE_FREQ)
+    skimage.io.imshow(sample_spectrogram_with_notes)
+    skimage.io.imsave('../../samples/sample_spectrogram_with_cut_notes.png', sample_spectrogram_with_notes)
 
-    canvas[round(note2freq['C4 '])] = np.array([1, 0, 0, 0, 1, 0, 1, 0])
-    canvas[round(note2freq['D4 '])] = np.array([0, 0, 0, 0, 0, 1, 0, 0])
-    canvas[round(note2freq['E4 '])] = np.array([0, 1, 0, 0, 1, 0, 1, 0])
-    canvas[round(note2freq['F4 '])] = np.array([0, 0, 1, 0, 0, 1, 0, 0])
-    canvas[round(note2freq['G4 '])] = np.array([0, 0, 0, 1, 0, 0, 1, 0])
-
-    # amplitude = np.iinfo(np.int16).max
-    # fs = 44100
-    # duration_s = 5
-    #
-    # x = np.linspace(0, fs * duration_s, 512)
-    #
-    # sinewaves = []
-    # for _, freq in note2freq.items():
-    #     sinewave = get_sinewave(x, freq, fs, amplitude)
-    #     sinewaves.append(sinewave)
-    #
-    # sum_wave = np.mean(sinewaves, axis=0)
-    # spectrogram = wavelet_transform(sum_wave,
-    #                                 np.linspace(32, 1046, 512),
-    #                                 fs)
-    # spectrogram = resize_image(spectrogram, 512, 512)
-    # spectrogram = spectrogram * resize_image(canvas, 512, 512)
-
-    spectrogram = resize_image(canvas, 512, 512)
-    spectrogram = spectrogram_as_image(spectrogram, to_uint=True)
-
-    skimage.io.imshow(spectrogram, aspect='equal')
-
-    png_path = '../../samples/test_spectrogram.png'
-    skimage.io.imsave(png_path, spectrogram)
-
-    loaded_img = Image.open(png_path)
-
-    print('converting...')
+    print('Converting images to audio...')
     params = SpectrogramParams()
-    # params.min_frequency = 32
-    # params.max_frequency = 1046
-    # converter = SpectrogramConverter(params)
+    params.min_frequency = MIN_NOTE_FREQ
+    params.max_frequency = MAX_NOTE_FREQ
     converter = SpectrogramImageConverter(params=params)
-    audio = converter.audio_from_spectrogram_image(loaded_img)
 
-    # audio_data = spectrogram2audio(spectrogram.copy(), converter)
-    print('playing...')
-    play_audio(audio)
+    audio = converter.converter.audio_from_spectrogram(spectrogram_for_converter(sample_spectrogram))
+    audio.export("../../samples/sample_audio.wav", format="wav")
 
+    audio_cut_notes = converter.converter.audio_from_spectrogram(spectrogram_for_converter(sample_spectrogram_with_notes))
+    audio_cut_notes.export("../../samples/sample_audio_cut_notes.wav", format="wav")
 
+    # print('Playing...')
+    # play_audio(audio)
