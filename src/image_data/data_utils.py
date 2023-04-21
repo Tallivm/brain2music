@@ -9,22 +9,24 @@ from src.constants import VERTICAL_RESOLUTION, HORIZONTAL_RESOLUTION, SAMPLE_EEG
     FREQUENCIES
 
 
-def cut_array(arr: np.ndarray, max_range: int, range_step: int) -> list[np.ndarray]:
+def cut_array(arr: np.ndarray, segment_len: int, overlap_len: int) -> list[np.ndarray]:
     samples = []
-    cut_points = np.arange(0, max_range, range_step)
-    for i in range(len(cut_points) - 1):
-        sample = arr[cut_points[i]: cut_points[i+1]]
+    arr_len = arr.shape[0]
+    for i in range(0, arr_len - segment_len + 1, segment_len - overlap_len):
+        sample = arr[i:i + segment_len]
         samples.append(sample)
+
     return samples
 
 
 def segment_eeg(eeg: np.ndarray, sample_rate: int, segment_len_s: int, overlap_s: int = 0) -> list[np.ndarray]:
-    """Data should be of shape: (signal, channels)"""
-    # TODO: check if works correctly, especially the step parameter
-    eeg_len = eeg.shape[0]
-    sample_len = sample_rate * segment_len_s
-    overlap_len = overlap_s * sample_rate
-    samples = cut_array(eeg, eeg_len - sample_len, sample_len - overlap_len)
+    assert eeg.ndim == 2, "eeg must be a 2-dimensional array of shape (signal, channels)"
+    assert segment_len_s > 0, "segment_len_s must be a positive number"
+    assert overlap_s >= 0, "overlap_s must be a non-negative number"
+
+    sample_len = round(sample_rate * segment_len_s)
+    overlap_len = round(overlap_s * sample_rate)
+    samples = cut_array(eeg, sample_len, overlap_len)
     return samples
 
 
