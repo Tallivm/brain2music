@@ -11,7 +11,6 @@ def audio_from_waveform(samples: np.ndarray, sample_rate: int, normalize: bool =
     if normalize:
         samples *= np.iinfo(np.int16).max / np.max(np.abs(samples))
     samples = samples.squeeze()
-    # samples = np.expand_dims(samples, -1)
     samples = samples.astype(np.int16)
     wav_bytes = io.BytesIO()
     wavfile.write(wav_bytes, sample_rate, samples)
@@ -19,11 +18,7 @@ def audio_from_waveform(samples: np.ndarray, sample_rate: int, normalize: bool =
     return AudioSegment.from_wav(wav_bytes)
 
 
-def spectrogram2audio(spectrogram: np.ndarray, converter) -> AudioSegment:
-    return converter.audio_from_spectrogram(spectrogram)
-
-
-def play_audio(audio: AudioSegment, sleep_time: float = 5.09) -> None:
+def play_audio_from_buffer(audio: AudioSegment, sleep_time: float = 5.09) -> None:
     print('playing a sound')
     simpleaudio.play_buffer(audio.raw_data,
                             num_channels=audio.channels,

@@ -4,7 +4,7 @@ from multiprocessing import Queue
 import numpy as np
 
 from src.image_data.data_utils import eeg2spectrogram
-from src.audio_data.audio_utils import play_audio, spectrogram2audio
+from src.audio_data.audio_utils import play_audio_from_buffer
 
 
 def eeg2img(eeg_queue: Queue, img_queue: Queue, freq: np.ndarray, fs: int) -> None:
@@ -23,7 +23,7 @@ def eeg2img_loop(eeg_queue: Queue, img_queue: Queue, freq: np.ndarray, fs: int) 
 
 def img2audio(img_queue: Queue, audio_queue: Queue, converter) -> None:
     img = img_queue.get()
-    audio = spectrogram2audio(img, converter)
+    audio = converter.audio_from_spectrogram(img)
     audio_queue.put(audio)
     print('Audio segment produced')
 
@@ -40,6 +40,6 @@ def player_loop(audio_queue: Queue) -> None:
         if not audio_queue.empty():
             audio = audio_queue.get()
             print('Will play audio_data now')
-            play_audio(audio)
+            play_audio_from_buffer(audio)
 
 
