@@ -6,7 +6,7 @@ from PIL import Image
 
 from src.image_data.image_utils import resize_image
 from src.constants import VERTICAL_RESOLUTION, HORIZONTAL_RESOLUTION, SAMPLE_EEG_FILEPATH, SAMPLE_RATE, SEGMENT_LEN_S, \
-    FREQUENCIES
+    FREQUENCIES, RIFFUSION_MAX_POWER
 
 
 def cut_array(arr: np.ndarray, segment_len: int, overlap_len: int) -> list[np.ndarray]:
@@ -45,7 +45,8 @@ def img_float2uint(img: np.ndarray) -> np.ndarray:
     return (img * 255).astype('uint8')
 
 
-def spectrum2riff_spectrum(spectrogram: np.ndarray, power: float = 0.25, max_power: float = 30e6) -> np.ndarray:
+def spectrum2riff_spectrum(spectrogram: np.ndarray, power: float = 0.25,
+                           max_power: float = RIFFUSION_MAX_POWER) -> np.ndarray:
     """Convert an image to riffusion spectrogram"""
     data = normalize_img(spectrogram)
     data = np.expand_dims(data, 0).astype(np.float32)
