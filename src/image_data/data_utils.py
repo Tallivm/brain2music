@@ -1,34 +1,12 @@
 import math
 import numpy as np
 import pandas as pd
-from scipy import signal
-from scipy.io import loadmat
 import pywt
-
-from typing import Any
+from PIL import Image
 
 from src.image_data.image_utils import resize_image
 from src.constants import VERTICAL_RESOLUTION, HORIZONTAL_RESOLUTION, SAMPLE_EEG_FILEPATH, SAMPLE_RATE, SEGMENT_LEN_S, \
     FREQUENCIES
-
-
-def load_eeg_mat_file(filepath: str) -> dict[int, dict[str, Any]]:
-    raw_data = loadmat(filepath)['data'][0]
-    records = {}
-    for i, record in enumerate(raw_data):
-        records[i] = {}
-        keys = record.dtype.names
-        for key in keys:
-            value = np.squeeze(record[key].item())
-            records[i][key] = value
-    return records
-
-
-def resample_eeg(eeg: np.ndarray, old_sample_rate: int, new_sample_rate: int) -> np.ndarray:
-    """Data should be of shape: (signal, channels)"""
-    num = round(eeg.shape[0] * (new_sample_rate / old_sample_rate))
-    resampled = signal.resample(eeg, num, domain='time')
-    return resampled
 
 
 def cut_array(arr: np.ndarray, max_range: int, range_step: int) -> list[np.ndarray]:
@@ -56,39 +34,57 @@ def wavelet_transform(channel: np.ndarray, freqs: np.ndarray, sample_rate: int, 
     return transformed
 
 
-def spectrogram_as_image(spectrogram: np.ndarray, to_uint: bool = False) -> np.ndarray:
-    res = ((spectrogram - spectrogram.min()) / (spectrogram.max() - spectrogram.min()))
-    res = res.clip(0, 1)
-    if to_uint:
-        res = 255 - (res * 255).astype('uint8')
-    return res
+def normalize_img(img: np.ndarray) -> np.ndarray:
+    res = (img - img.min()) / (img.max() - img.min())
+    return res.clip(0, 1)
 
 
-def spectrogram_for_converter(spectrogram: np.ndarray, power: float = 0.25,
-                              max_power: float = 30e6) -> np.ndarray:
-    data = spectrogram_as_image(spectrogram, to_uint=True)
-    # data = np.flipud(data)
+def img_float2uint(img: np.ndarray) -> np.ndarray:
+    return (img * 255).astype('uint8')
+
+
+def spectrum2riff_spectrum(spectrogram: np.ndarray, power: float = 0.25, max_power: float = 30e6) -> np.ndarray:
+    """Convert an image to riffusion spectrogram"""
+    data = normalize_img(spectrogram)
     data = np.expand_dims(data, 0).astype(np.float32)
-    # data = 255 - data
-    # data = data / 255
     data = np.power(data, 1 / power)
     return data * max_power
+
+
+def pil_image2img(image: Image.Image, inversed: bool = False) -> np.ndarray:
+    """Used to convert images loaded with PIL to uint8 numpy arrays"""
+    if image.mode in ("P", "L"):
+        image = image.convert("RGB")
+    data = np.array(image).transpose(2, 0, 1)
+    if inversed:
+        data = 255 - data
+    return data[0, :, :]
 
 
 def combine_spectrograms(spectrograms: list[np.ndarray]) -> np.ndarray:
     return np.mean(spectrograms, axis=0)
 
 
-def eeg2spectrogram(eeg: np.ndarray, freqs: np.ndarray, fs: int, to_abs: bool = True) -> np.ndarray:
+def abs_spectrogram(spectrogram: np.ndarray, abs_mode: str) -> np.ndarray:
+    if abs_mode == 'none':
+        return spectrogram
+    elif abs_mode == 'both':
+        return np.abs(spectrogram)
+    elif abs_mode == 'plus':
+        return spectrogram.clip(0, spectrogram.max())
+    elif abs_mode == 'minus':
+        return spectrogram.clip(spectrogram.min(), 0)
+    else:
+        raise ValueError('abs_mode can only be "none", "both", "plus" or "minus"')
+
+
+def eeg2spectrogram(eeg: np.ndarray, freqs: np.ndarray, fs: int, abs_mode: str = 'none') -> np.ndarray:
     spectrograms = []
     for ch in range(eeg.shape[1]):
-        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=freqs, sample_rate=fs,
-                                        cwavelet='morl')
-        if to_abs:
-            spectrogram = np.abs(spectrogram)
+        spectrogram = wavelet_transform(channel=eeg[:, ch], freqs=freqs, sample_rate=fs, cwavelet='morl')
+        spectrogram = abs_spectrogram(spectrogram, abs_mode)
         spectrograms.append(spectrogram)
     joined_spectrogram = combine_spectrograms(spectrograms)
-    joined_spectrogram = spectrogram_as_image(joined_spectrogram, to_uint=True)
     joined_spectrogram = resize_image(joined_spectrogram, HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION)
     return joined_spectrogram
 
@@ -101,9 +97,9 @@ def generate_sinewave(x: np.ndarray, freq: float, fs: int, amplitude: float) -> 
     return amplitude * np.sin(2 * np.pi * freq * x / fs)
 
 
-def get_sample_spectrogram() -> np.ndarray:
+def get_sample_spectrogram(abs_mode: str = 'both') -> np.ndarray:
     segment = pd.read_csv(SAMPLE_EEG_FILEPATH).to_numpy()[:SEGMENT_LEN_S * SAMPLE_RATE, :1]
-    spectrogram = eeg2spectrogram(segment, FREQUENCIES, SAMPLE_RATE, to_abs=True)
+    spectrogram = eeg2spectrogram(segment, FREQUENCIES, SAMPLE_RATE, abs_mode=abs_mode)
     return spectrogram
 
 
