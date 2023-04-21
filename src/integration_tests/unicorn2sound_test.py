@@ -8,6 +8,8 @@ from src.constants import FREQUENCIES, SAMPLE_RATE
 
 if __name__ == '__main__':
 
+    # MAY BREAK ON GPU BECAUSE CUDA WORKS BADLY WITH MULTIPROCESSING!
+
     n_samples = SAMPLE_RATE
     converter = SpectrogramConverter(SpectrogramParams())
     channels_to_acquire = [0, 1, 2]

@@ -2,6 +2,7 @@ import time
 import multiprocessing
 
 from src.unicorn.eeg_aquisition import acquire_eeg
+from src.constants import SAMPLE_RATE
 
 
 def print_got_data(eeg_queue: multiprocessing.Queue):
@@ -14,11 +15,10 @@ def print_got_data(eeg_queue: multiprocessing.Queue):
 
 if __name__ == '__main__':
 
-    RECORD_SIZE_S = 1
-    fs = 250
+    record_length_s = 1
 
     eeg_queue = multiprocessing.Queue()
-    acquisition_process = multiprocessing.Process(target=acquire_eeg, args=(eeg_queue, RECORD_SIZE_S, fs))
+    acquisition_process = multiprocessing.Process(target=acquire_eeg, args=(eeg_queue, record_length_s, SAMPLE_RATE))
     printing_process = multiprocessing.Process(target=print_got_data, args=(eeg_queue,))
 
     acquisition_process.start()
