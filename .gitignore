@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/src/rave/models/
+/src/rave/output/
+/.idea/
