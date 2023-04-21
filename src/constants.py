@@ -1,20 +1,20 @@
 import numpy as np
 
+HORIZONTAL_RESOLUTION = 512
+VERTICAL_RESOLUTION = 512
+MIN_FREQUENCY = 0.5
+MAX_FREQUENCY = 40
+SAMPLE_RATE = 250
+SEGMENT_LEN_S = 5
 
-FREQUENCY = np.linspace(1, 40, 512)
+SAMPLE_EEG_FILEPATH = '../../samples/UnicornRecorder_20220625_121622.csv'
+SAMPLE_AUDIO_FILEPATH = "../../samples/sample_music.wav"
 
+FREQUENCIES = np.linspace(MIN_FREQUENCY, MAX_FREQUENCY, VERTICAL_RESOLUTION).round(2)
 
-# FREQS = {
-#     'delta': (1, 4),
-#     'theta': (4, 8),
-#     'alpha': (8, 12),
-#     'beta1': (12, 16),
-#     'beta2': (16, 24),
-#     'beta3': (24, 30),
-#     'gamma1': (30, 40),
-#     'gamma2': (40, 50),
-#     'gamma3': (50, 60),
-# }
+MIN_NOTE = 'C0 '
+MAX_NOTE = 'B8 '
+RIFFUSION_MAX_POWER = 30e6
 
 NOTE2FREQ = {
     'C0 ': 16.35,
@@ -126,3 +126,5 @@ NOTE2FREQ = {
     'A#8': 7458.62,
     'B8 ': 7902.13,
 }
+
+NOTE_FREQUENCIES = FREQUENCIES[::VERTICAL_RESOLUTION // len(NOTE2FREQ)]
