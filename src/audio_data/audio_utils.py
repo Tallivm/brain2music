@@ -5,6 +5,7 @@ import numpy as np
 import simpleaudio
 from pydub import AudioSegment
 from scipy.io import wavfile
+import soundfile as sf
 
 
 def audio_from_waveform(samples: np.ndarray, sample_rate: int, normalize: bool = False) -> AudioSegment:
@@ -26,3 +27,7 @@ def play_audio_from_buffer(audio: AudioSegment, sleep_time: float = 5.09) -> Non
                             sample_rate=audio.frame_rate
                             )
     time.sleep(sleep_time)
+
+
+def save_audio_from_wave(wave: np.ndarray, filename: str) -> None:
+    sf.write(filename, wave, 44100)

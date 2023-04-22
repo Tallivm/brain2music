@@ -11,11 +11,8 @@ input_wav_name = "sample_music" #"jazzfunk_sample"  # "some_audio"
 torch.set_grad_enabled(False)
 
 print("Loading model...")
-loaded_model = torch.jit.load(f"models/{model_name}.ts").eval()
+model = torch.jit.load(f"models/{model_name}.ts").eval()
 # other models : nasa.ts, vintage.ts
-
-print("Evaluating model...")
-model = loaded_model.eval()
 
 print("Loading sample...")
 x = li.load(f"data/{input_wav_name}.wav")[0]
