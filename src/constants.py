@@ -14,6 +14,17 @@ SPECTROGRAM_WIDTH = 512
 SPECTROGRAM_HEIGHT = 512
 SPECTROGRAM_MAX_VALUE = 30e6
 
+# Model constants -------------
+RIFFUSION_CHECKPOINT = "riffusion/riffusion-model-v1"
+SCHEDULER_OPTIONS = [
+    "DPMSolverMultistepScheduler",
+    "PNDMScheduler",
+    "DDIMScheduler",
+    "LMSDiscreteScheduler",
+    "EulerDiscreteScheduler",
+    "EulerAncestralDiscreteScheduler",
+]
+
 # Audio constants -------------
 AUDIO_SAMPLE_RATE = 44100
 MIN_AUDIO_FREQUENCY = 0

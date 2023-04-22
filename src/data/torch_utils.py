@@ -15,7 +15,40 @@ def check_device(device: str, backup: str = "cpu") -> str:
     if cuda_not_found:
         print(f"WARNING: {device} is not available, using {backup} instead.")
         return backup
+    if device.lower().startswith("mps"):
+        print(f"WARNING: Falling back to float32 on {device}, float16 is unsupported")
+        return backup
     return device
+
+
+def slerp(t: float, v0: torch.Tensor, v1: torch.Tensor, dot_threshold: float = 0.9995) -> torch.Tensor:
+    """
+    Helper function to spherically interpolate two arrays v1 v2.
+    """
+    inputs_are_torch = False
+    input_device = None
+    if not isinstance(v0, np.ndarray):
+        inputs_are_torch = True
+        input_device = v0.device
+        v0 = v0.cpu().numpy()
+        v1 = v1.cpu().numpy()
+
+    dot = np.sum(v0 * v1 / (np.linalg.norm(v0) * np.linalg.norm(v1)))
+    if np.abs(dot) > dot_threshold:
+        v2 = (1 - t) * v0 + t * v1
+    else:
+        theta_0 = np.arccos(dot)
+        sin_theta_0 = np.sin(theta_0)
+        theta_t = theta_0 * t
+        sin_theta_t = np.sin(theta_t)
+        s0 = np.sin(theta_0 - theta_t) / sin_theta_0
+        s1 = sin_theta_t / sin_theta_0
+        v2 = s0 * v0 + s1 * v1
+
+    if inputs_are_torch:
+        v2 = torch.from_numpy(v2).to(input_device)
+
+    return v2
 
 
 @dataclass(frozen=False)
@@ -60,10 +93,6 @@ class SpectrogramConverter:
             params = SpectrogramParams()
         self.p = params
         self.device = check_device(device)
-
-        if device.lower().startswith("mps"):
-            print("WARNING: MPS does not support audio operations, falling back to CPU for them")
-            self.device = "cpu"
 
         self.spectrogram_func = torchaudio.transforms.Spectrogram(
             n_fft=params.n_fft,

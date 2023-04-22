@@ -7,4 +7,6 @@ pandas==2.0.0
 librosa==0.10.0.post2
 torch==2.0.0+cu118
 torchaudio==2.0.1+cu118
+diffusers>=0.9.0
 streamz==0.6.4
+transformers
