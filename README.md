@@ -1,6 +1,29 @@
 # brain2music
 A Python and SD pipeline to convert EEG data to music in real time
 
+## Pipeline Overview
+
+
+Here is a mermaid diagram for the pipeline in the code you provided:
+
+```mermaid
+graph LR
+    A[EEG] --> C[EEG Features]
+    C -->D[Raw Spectrogram]
+    D -->|Riffusion| E[Transformed Spectrogram]
+    E -->|Torch| F[Wave]
+    F -->|Rave| G[Transformed Wave]
+    G -->H[Audio]
+    H -->I[Play]
+    
+    subgraph Transformations 
+        D
+        E
+        F
+        G
+    end
+```
+
 ## Setup
 
 ### Install packages
