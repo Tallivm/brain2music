@@ -61,12 +61,20 @@ def save_pydub_audio_file(audio: AudioSegment, filepath: str) -> None:
     audio.export(filepath, format="wav")
 
 
+def normalize_spectrogram(s: np.ndarray) -> np.ndarray:
+    return (s - s.min()) / (s.max() - s.min())
+
+
+def invert_normalized_spectrogram(s: np.ndarray) -> np.ndarray:
+    return 1 - s
+
+
 def normalize_spectrogram_with_max_power(s: np.ndarray) -> np.ndarray:
-    return (s - s.min()) / (s.max() - s.min()) * SPECTROGRAM_MAX_VALUE
+    return normalize_spectrogram(s) * SPECTROGRAM_MAX_VALUE
 
 
 def normalize_spectrogram_for_image(s: np.ndarray) -> np.ndarray:
-    return ((s - s.min()) / (s.max() - s.min()) * 255).astype('uint8')
+    return (normalize_spectrogram(s) * 255).astype('uint8')
 
 
 def save_spectrogram_as_image(s: np.ndarray, filepath: str) -> None:

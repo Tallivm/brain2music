@@ -1,9 +1,13 @@
 import numpy as np
+from torch import Generator
+from diffusers import StableDiffusionImg2ImgPipeline
 
 from src.data.utils import resize_image
 from src.data.sample_gen import generate_sample_wave
 from src.constants import SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT
-from src.data.ai_models import run_rave
+from src.data.ai_models import run_rave, run_riffusion
+
+from typing import Optional
 
 
 def build_spectrogram_from_eeg_features(eeg_features: list[np.ndarray]) -> np.ndarray:
@@ -14,14 +18,24 @@ def build_spectrogram_from_eeg_features(eeg_features: list[np.ndarray]) -> np.nd
     return spectrogram
 
 
-def transform_spectrogram(spectrogram: np.ndarray) -> np.ndarray:
+def transform_spectrogram(spectrogram: np.ndarray, riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None,
+                          generator: Optional[Generator] = None) -> np.ndarray:
     """Apply algorithms over the whole spectrogram"""
-    return spectrogram
+    transformed = spectrogram.copy()
+    if riffusion_model is not None:
+        transformed = run_riffusion(transformed, riffusion_model, generator)
+    return transformed
 
 
-def transform_wave(wave: np.ndarray, rave_model, add_background_sound: bool = False) -> np.ndarray:
+def transform_wave(
+        wave: np.ndarray,
+        rave_model: Optional = None,
+        add_background_sound: bool = False
+) -> np.ndarray:
     """Apply algorithms over the whole wave"""
-    transformed = run_rave(wave, rave_model)
+    transformed = wave.copy()
+    if rave_model is not None:
+        transformed = run_rave(wave, rave_model)
     if add_background_sound:
         to_add = generate_sample_wave()
         transformed = transformed[:len(to_add)] + to_add

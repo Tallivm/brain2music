@@ -24,6 +24,11 @@ SCHEDULER_OPTIONS = [
     "EulerDiscreteScheduler",
     "EulerAncestralDiscreteScheduler",
 ]
+TEXT_PROMPT = 'dreamy tune'
+TEXT_NEGATIVE_PROMPT = None
+DENOISING_STRENGTH = 0.65
+GUIDANCE_SCALE = 7.0
+INFERENCE_STEPS = 25
 
 # Audio constants -------------
 AUDIO_SAMPLE_RATE = 44100

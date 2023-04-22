@@ -1,48 +1,11 @@
 import threading
-from dataclasses import dataclass
-from typing import Optional, Any, Callable
-
 import torch
 from PIL import Image
 from diffusers import StableDiffusionImg2ImgPipeline
 
 from src.constants import RIFFUSION_CHECKPOINT, SCHEDULER_OPTIONS
 
-
-@dataclass(frozen=True)
-class PromptInput:
-    """Parameters for one end of interpolation."""
-    # Text prompt fed into a CLIP model
-    prompt: str
-    # Random seed for denoising
-    seed: int
-    # Negative prompt to avoid (optional)
-    negative_prompt: Optional[str] = None
-    # Denoising strength
-    denoising: float = 0.75
-    # Classifier-free guidance strength
-    guidance: float = 7.0
-
-
-@dataclass(frozen=True)
-class InferenceInput:
-    """
-    Parameters for a single run of the riffusion model, interpolating between
-    a start and end set of PromptInputs. This is the API required for a request
-    to the model server.
-    """
-    # Start point of interpolation
-    start: PromptInput
-    # End point of interpolation
-    end: PromptInput
-    # Interpolation alpha [0, 1]. A value of 0 uses start fully, a value of 1 uses end fully.
-    alpha: float
-    # Number of inner loops of the diffusion model
-    num_inference_steps: int = 50
-    # Which seed image to use
-    seed_image_id: str = "og_beat"
-    # ID of mask image to use
-    mask_image_id: Optional[str] = None
+from typing import Optional, Any, Callable
 
 
 def pipeline_lock() -> threading.Lock:
@@ -51,9 +14,7 @@ def pipeline_lock() -> threading.Lock:
 
 
 def get_scheduler(scheduler: str, config: Any) -> Any:
-    """
-    Construct a denoising scheduler from a string.
-    """
+    """Construct a denoising scheduler from a string."""
     if scheduler == "PNDMScheduler":
         from diffusers import PNDMScheduler
 
@@ -106,35 +67,29 @@ def load_stable_diffusion_img2img_pipeline(
     return pipeline
 
 
+def get_generator(seed: int, device: str) -> torch.Generator:
+    generator_device = "cpu" if device.lower().startswith("mps") else device
+    generator = torch.Generator(device=generator_device).manual_seed(seed)
+    return generator
+
+
 def run_img2img(
+    pipeline: StableDiffusionImg2ImgPipeline,
     prompt: str,
     init_image: Image.Image,
     denoising_strength: float,
     num_inference_steps: int,
     guidance_scale: float,
-    seed: int,
+    generator: torch.Generator,
     negative_prompt: Optional[str] = None,
-    checkpoint: str = RIFFUSION_CHECKPOINT,
-    device: str = "cuda",
-    scheduler: str = SCHEDULER_OPTIONS[0],
-    progress_callback: Optional[Callable[[float], Any]] = None,
+    progress_callback: Optional[Callable[[float], Any]] = None
 ) -> Image.Image:
-    with pipeline_lock():
-        pipeline = load_stable_diffusion_img2img_pipeline(
-            checkpoint=checkpoint,
-            device=device,
-            scheduler=scheduler,
-        )
-
-        generator_device = "cpu" if device.lower().startswith("mps") else device
-        generator = torch.Generator(device=generator_device).manual_seed(seed)
-
+    def callback(step: int, tensor: torch.Tensor, foo: Any,) -> None:
         num_expected_steps = max(int(num_inference_steps * denoising_strength), 1)
+        if progress_callback is not None:
+            progress_callback(step / num_expected_steps)
 
-        def callback(step: int, tensor: torch.Tensor, foo: Any) -> None:
-            if progress_callback is not None:
-                progress_callback(step / num_expected_steps)
-
+    with pipeline_lock():
         result = pipeline(
             prompt=prompt,
             image=init_image,
@@ -147,5 +102,4 @@ def run_img2img(
             callback=callback,
             callback_steps=1,
         )
-
         return result.images[0]
