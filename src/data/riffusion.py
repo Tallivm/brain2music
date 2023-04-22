@@ -3,7 +3,7 @@ import torch
 from PIL import Image
 from diffusers import StableDiffusionImg2ImgPipeline
 
-from src.constants import RIFFUSION_CHECKPOINT, SCHEDULER_OPTIONS
+from src.constants import RIFFUSION_CHECKPOINT, SCHEDULER_OPTIONS, SEED
 
 from typing import Optional, Any, Callable
 
@@ -43,6 +43,10 @@ def get_scheduler(scheduler: str, config: Any) -> Any:
         raise ValueError(f"Unknown scheduler {scheduler}")
 
 
+def nsfw_disabler(images, **kwargs):
+    return images, False
+
+
 def load_stable_diffusion_img2img_pipeline(
     checkpoint: str = RIFFUSION_CHECKPOINT,
     device: str = "cuda",
@@ -61,7 +65,7 @@ def load_stable_diffusion_img2img_pipeline(
         checkpoint,
         revision="main",
         torch_dtype=dtype,
-        safety_checker=lambda images, **kwargs: (images, False),
+        safety_checker=nsfw_disabler,
     ).to(device)
     pipeline.scheduler = get_scheduler(scheduler, config=pipeline.scheduler.config)
     return pipeline
@@ -80,15 +84,16 @@ def run_img2img(
     denoising_strength: float,
     num_inference_steps: int,
     guidance_scale: float,
-    generator: torch.Generator,
     negative_prompt: Optional[str] = None,
-    progress_callback: Optional[Callable[[float], Any]] = None
+    progress_callback: Optional[Callable[[float], Any]] = None,
+    device: str = 'cuda'
 ) -> Image.Image:
     def callback(step: int, tensor: torch.Tensor, foo: Any,) -> None:
         num_expected_steps = max(int(num_inference_steps * denoising_strength), 1)
         if progress_callback is not None:
             progress_callback(step / num_expected_steps)
 
+    generator = get_generator(SEED, device)
     with pipeline_lock():
         result = pipeline(
             prompt=prompt,

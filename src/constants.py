@@ -13,6 +13,8 @@ CHANNEL_IDS = (0, 1, 2, 3)
 SPECTROGRAM_WIDTH = 512
 SPECTROGRAM_HEIGHT = 512
 SPECTROGRAM_MAX_VALUE = 30e6
+# MEL_NOTES = [51, 66, 76, 84, 91]
+NOTE_MASK = np.load('../../samples/c2_to_c6_mask.npy')
 
 # Model constants -------------
 RIFFUSION_CHECKPOINT = "riffusion/riffusion-model-v1"
@@ -28,7 +30,8 @@ TEXT_PROMPT = 'dreamy tune'
 TEXT_NEGATIVE_PROMPT = None
 DENOISING_STRENGTH = 0.65
 GUIDANCE_SCALE = 7.0
-INFERENCE_STEPS = 25
+INFERENCE_STEPS = 10
+SEED = 42
 
 # Audio constants -------------
 AUDIO_SAMPLE_RATE = 44100

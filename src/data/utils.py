@@ -77,6 +77,10 @@ def normalize_spectrogram_for_image(s: np.ndarray) -> np.ndarray:
     return (normalize_spectrogram(s) * 255).astype('uint8')
 
 
-def save_spectrogram_as_image(s: np.ndarray, filepath: str) -> None:
+def save_spectrogram_as_image(s: np.ndarray, filepath: str, inverse: bool = False, flip: bool = False) -> None:
     s_img = normalize_spectrogram_for_image(s)
+    if inverse:
+        s_img = 255 - s_img
+    if flip:
+        s_img = np.flipud(s_img)
     skimage.io.imsave(filepath, s_img)

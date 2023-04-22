@@ -23,9 +23,9 @@ def run_rave(wave: np.ndarray, rave_model) -> np.ndarray:
     return y
 
 
-def run_riffusion(spectrogram: np.ndarray, riffusion_model: StableDiffusionImg2ImgPipeline,
-                  generator: torch.Generator) -> np.ndarray:
-    img = Image.fromarray(normalize_spectrogram_for_image(spectrogram)).convert('RGB')
+def run_riffusion(spectrogram: np.ndarray, riffusion_model: StableDiffusionImg2ImgPipeline) -> np.ndarray:
+    prepare_img = normalize_spectrogram_for_image(np.flipud(spectrogram))
+    img = Image.fromarray(prepare_img).convert('RGB')
     res = run_img2img(
         pipeline=riffusion_model,
         prompt=TEXT_PROMPT,
@@ -33,8 +33,7 @@ def run_riffusion(spectrogram: np.ndarray, riffusion_model: StableDiffusionImg2I
         denoising_strength=DENOISING_STRENGTH,
         num_inference_steps=INFERENCE_STEPS,
         guidance_scale=GUIDANCE_SCALE,
-        generator=generator,
         negative_prompt=TEXT_NEGATIVE_PROMPT
     )
-    res_numpy = np.array(res.convert('L'))
-    return 255 - normalize_spectrogram_for_image(res_numpy.clip(0, np.median(res_numpy)))
+    res_numpy = np.flipud(np.array(res.convert('L')))
+    return res_numpy
