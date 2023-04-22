@@ -3,9 +3,6 @@ A Python and SD pipeline to convert EEG data to music in real time
 
 ## Pipeline Overview
 
-
-Here is a mermaid diagram for the pipeline in the code you provided:
-
 ```mermaid
 graph TB
     A[EEG] --> C[EEG Features]
