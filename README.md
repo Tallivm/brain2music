@@ -36,9 +36,9 @@ pip install -r requirements.txt
 1. Select Stable build, your OS, package manages (ex.: Pip), language=Python, CUDA or CPU. 
 1. Copy the installation command and run it in a shell/cmd in root project folder
 
-You can check if you have CUDA by running in cmd and looking at the top right corner for "CUDA Version":
+You can check if you have CUDA by running in cmd and looking in the top right corner for "CUDA Version":
 
-```
+```commandline
 nvidia-smi
 ```
 
