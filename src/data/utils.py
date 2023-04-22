@@ -1,12 +1,11 @@
 from io import BytesIO
 import numpy as np
-from pandas import read_csv
 from pydub import AudioSegment
 import librosa as li
 from scipy.io import wavfile
 import skimage
 
-from src.constants import SEGMENT_LEN_S, SAMPLE_RATE, AUDIO_SAMPLE_RATE, SPECTROGRAM_MAX_VALUE
+from src.constants import AUDIO_SAMPLE_RATE, SPECTROGRAM_MAX_VALUE
 
 
 def cut_array(arr: np.ndarray, segment_len: int, overlap_len: int) -> list[np.ndarray]:
@@ -73,24 +72,3 @@ def normalize_spectrogram_for_image(s: np.ndarray) -> np.ndarray:
 def save_spectrogram_as_image(s: np.ndarray, filepath: str) -> None:
     s_img = normalize_spectrogram_for_image(s)
     skimage.io.imsave(filepath, s_img)
-
-
-def get_sample_eeg_segment() -> np.ndarray:
-    datapath = "../../samples/eeg_samples/UnicornRecorder_20220625_121622.csv"
-    data = read_csv(datapath).to_numpy()[:SAMPLE_RATE * SEGMENT_LEN_S, :8]
-    return data
-
-
-def get_offline_eeg_segments() -> list[np.ndarray]:
-    datapath = "../../samples/eeg_samples/UnicornRecorder_20220625_121622.csv"
-    data = read_csv(datapath).to_numpy()[:, :8]
-    segments = segment_eeg(data, sample_rate=SAMPLE_RATE, segment_len_s=SEGMENT_LEN_S, overlap_s=0)
-    return segments
-
-
-def get_sample_audio_wave() -> tuple[np.ndarray, float]:
-    return li.load('../../samples/sample_music.wav')
-
-
-def generate_sample_wave() -> np.ndarray:
-    return li.tone(261.63, sr=AUDIO_SAMPLE_RATE, duration=SEGMENT_LEN_S)

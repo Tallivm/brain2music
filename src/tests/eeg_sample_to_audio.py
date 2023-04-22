@@ -2,9 +2,9 @@ import time
 
 from src.data.eeg_features import extract_features
 from src.data.spectral_transform import build_spectrogram_from_eeg_features, transform_spectrogram
-from src.data.utils import produce_audio_from_spectrogram_with_librosa, get_sample_eeg_segment, save_pydub_audio_file, \
+from src.data.utils import produce_audio_from_spectrogram_with_librosa, save_pydub_audio_file, \
     save_spectrogram_as_image, normalize_spectrogram_with_max_power
-
+from src.data.sample_gen import get_sample_eeg_segment
 
 if __name__ == "__main__":
     sample_data = get_sample_eeg_segment()

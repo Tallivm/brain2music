@@ -3,7 +3,8 @@ from streamz import Stream
 
 from src.data.eeg_features import extract_features
 from src.data.spectral_transform import build_spectrogram_from_eeg_features, transform_spectrogram, transform_wave
-from src.data.utils import get_offline_eeg_segments, produce_audio_from_wave, produce_wave_with_torch
+from src.data.utils import produce_audio_from_wave, produce_wave_with_torch
+from src.data.sample_gen import get_offline_eeg_segments
 from src.data.torch_utils import SpectrogramConverter
 from src.data.ai_models import load_rave_model
 from src.player.player import player

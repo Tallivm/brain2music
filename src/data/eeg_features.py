@@ -36,7 +36,8 @@ def extract_features(eeg: np.ndarray, frequencies: np.ndarray = EEG_FREQUENCIES,
 
 
 if __name__ == "__main__":
-    from src.data.utils import get_sample_eeg_segment
+    from src.data.sample_gen import get_sample_eeg_segment
+
     eeg = get_sample_eeg_segment()
     print(f'From an EEG segment of size {eeg.shape} (samples, channels)...')
     res = extract_features(eeg)

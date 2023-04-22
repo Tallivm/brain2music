@@ -1,6 +1,7 @@
 import numpy as np
 
-from src.data.utils import resize_image, generate_sample_wave
+from src.data.utils import resize_image
+from src.data.sample_gen import generate_sample_wave
 from src.constants import SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT
 from src.data.ai_models import run_rave
 
