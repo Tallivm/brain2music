@@ -1,7 +1,8 @@
 import numpy as np
 import pywt
+from scipy.signal import sosfiltfilt
 
-from src.constants import SAMPLE_RATE, EEG_FREQUENCIES, CHANNEL_IDS
+from src.constants import SAMPLE_RATE, EEG_FREQUENCIES, CHANNEL_IDS, BANDPASS_FILTER
 
 
 def wavelet_transform(wave: np.ndarray, frequencies: np.ndarray, sample_rate: int,
@@ -29,10 +30,15 @@ def extract_features(eeg: np.ndarray, frequencies: np.ndarray = EEG_FREQUENCIES,
     """Get chosen channels and some other useful features from EEG data"""
     spectrograms = []
     for ch in channels:
-        spectrogram = wavelet_transform(eeg[:, ch], frequencies=frequencies, sample_rate=SAMPLE_RATE)
+        cleaned_signal = clean_signal(eeg[:, ch])
+        spectrogram = wavelet_transform(cleaned_signal, frequencies=frequencies, sample_rate=SAMPLE_RATE)
         spectrogram = abs_spectrogram(spectrogram, abs_mode=abs_mode)
         spectrograms.append(spectrogram)
     return spectrograms
+
+
+def clean_signal(signal: np.ndarray) -> np.ndarray:
+    return sosfiltfilt(BANDPASS_FILTER, signal)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import butter
 
 # EEG constants ---------------
 MIN_EEG_FREQUENCY = 0.5
@@ -8,7 +9,8 @@ EEG_FREQUENCIES = np.linspace(MIN_EEG_FREQUENCY, MAX_EEG_FREQUENCY, N_EEG_FREQUE
 SAMPLE_RATE = 250
 SEGMENT_LEN_S = 5
 CHANNEL_IDS = (0, 1, 2, 3)
-SAMPLE_EEG_PATH = "../../samples/eeg_samples/2min_16hz.csv"
+SAMPLE_EEG_PATH = "../../samples/eeg_samples/UnicornRecorder_20220625_121622.csv"
+BANDPASS_FILTER = butter(4, (MIN_EEG_FREQUENCY, MAX_EEG_FREQUENCY), 'bp', output='sos', fs=SAMPLE_RATE)
 
 # Spectrogram constants -------
 SPECTROGRAM_WIDTH = 512
