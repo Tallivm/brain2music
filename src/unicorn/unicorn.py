@@ -18,7 +18,7 @@ def acquire_eeg_data_record(device, n_scans: int, buffer: bytearray, buffer_len:
     return data
 
 
-def acquire_eeg(queue: Queue, fs: int, scan_len_s: int = 1) -> None:
+def acquire_eeg(queue: Queue, img_queue: Queue, fs: int, scan_len_s: int = 1) -> None:
 
     print(f'Connecting to Unicorn...')
     device = connect_to_unicorn()
@@ -37,6 +37,7 @@ def acquire_eeg(queue: Queue, fs: int, scan_len_s: int = 1) -> None:
                 data = acquire_eeg_data_record(device, n_scans=n_scans, buffer=buffer,
                                                buffer_len=buffer_len_bytes, n_channels=n_channels)
                 data = np.reshape(data, (n_scans, n_channels))
+                img_queue.put(data)
                 full_buffer.append(data)
             queue.put(np.concatenate(full_buffer))
             print(f'Collected data to queue.')
@@ -48,5 +49,5 @@ def acquire_eeg(queue: Queue, fs: int, scan_len_s: int = 1) -> None:
 
 if __name__ == "__main__":
     from queue import Queue as FakeQueue
-    q = FakeQueue()
-    acquire_eeg(q, fs=250)
+    q, q2 = FakeQueue(), FakeQueue()
+    acquire_eeg(q, q2, fs=250)
