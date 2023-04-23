@@ -12,6 +12,8 @@ if __name__ == "__main__":
     for segment in offline_segments:
         eeg_queue.put(segment)
 
+    print(f'Will process {len(offline_segments)} pre-recorded EEG segments...')
+
     riffusion_model = load_stable_diffusion_img2img_pipeline()
 
     player_process = Process(target=player, args=(play_queue,))

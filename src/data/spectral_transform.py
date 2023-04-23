@@ -4,7 +4,7 @@ import skimage
 
 from src.data.utils import resize_image, normalize_spectrogram_with_max_power
 from src.data.sample_gen import generate_sample_wave
-from src.constants import SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT, NOTE_MASK
+from src.constants import SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT, SPECTROGRAM_SHIFT, NOTE_MASK
 from src.data.ai_models import run_rave, run_riffusion
 
 from typing import Optional
@@ -21,11 +21,11 @@ def build_spectrogram_from_eeg_features(eeg_features: list[np.ndarray]) -> np.nd
 def transform_spectrogram(spectrogram: np.ndarray,
                           riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None) -> np.ndarray:
     """Apply algorithms over the whole spectrogram"""
-    transformed = spectrogram.copy()
+    transformed = np.roll(spectrogram, shift=SPECTROGRAM_SHIFT, axis=0)
     transformed = filter_spectrogram(transformed)
     if riffusion_model is not None:
         transformed = run_riffusion(spectrogram=transformed, riffusion_model=riffusion_model)
-    return normalize_spectrogram_with_max_power(transformed)
+    return normalize_spectrogram_with_max_power(transformed, with_power=True)
 
 
 def transform_wave(

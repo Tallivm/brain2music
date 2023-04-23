@@ -24,7 +24,7 @@ def run_rave(wave: np.ndarray, rave_model) -> np.ndarray:
 
 
 def run_riffusion(spectrogram: np.ndarray, riffusion_model: StableDiffusionImg2ImgPipeline) -> np.ndarray:
-    prepare_img = normalize_spectrogram_for_image(np.flipud(spectrogram))
+    prepare_img = 255 - normalize_spectrogram_for_image(np.flipud(spectrogram))
     img = Image.fromarray(prepare_img).convert('RGB')
     res = run_img2img(
         pipeline=riffusion_model,
@@ -36,4 +36,4 @@ def run_riffusion(spectrogram: np.ndarray, riffusion_model: StableDiffusionImg2I
         negative_prompt=TEXT_NEGATIVE_PROMPT
     )
     res_numpy = np.flipud(np.array(res.convert('L')))
-    return res_numpy
+    return (np.median(res_numpy) - res_numpy).clip(min=0)

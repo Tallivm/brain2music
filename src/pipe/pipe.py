@@ -5,8 +5,8 @@ from streamz import Stream
 from diffusers import StableDiffusionImg2ImgPipeline
 
 from src.data.eeg_features import extract_features
-from src.data.spectral_transform import build_spectrogram_from_eeg_features, transform_spectrogram, transform_wave
-from src.data.utils import produce_audio_from_wave, produce_wave_with_torch
+from src.data.spectral_transform import build_spectrogram_from_eeg_features, transform_spectrogram
+from src.data.utils import apply_audio_filters, produce_audio_from_spectrogram_with_torch, save_audio_to_file
 from src.data.sample_gen import get_offline_eeg_segments
 from src.data.torch_utils import SpectrogramConverter
 from src.player.player import player
@@ -39,10 +39,11 @@ def afterparty_pipe(transformed_queue: Queue, play_queue: Queue) -> None:
     converter = SpectrogramConverter()
     stream = Stream()
     (stream
-     .map(produce_wave_with_torch, converter)
-     .map(transform_wave).map(produce_audio_from_wave)
-     .sink(play_queue.put)
-     )
+     .map(produce_audio_from_spectrogram_with_torch, converter)
+     .map(apply_audio_filters)
+     .accumulate(lambda acc, x: ((acc[0] + 1, x), (acc[0], x)), start=(0, 0), returns_state=True)
+     .map(save_audio_to_file)
+     .sink(play_queue.put))
     while True:
         if not transformed_queue.empty():
             stream.emit(transformed_queue.get())
@@ -53,7 +54,7 @@ def afterparty_pipe(transformed_queue: Queue, play_queue: Queue) -> None:
 def main_pipe(
     eeg_queue: Queue,
     play_queue: Queue,
-    riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None
+    riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None,
 ) -> None:
     spectra_queue, transformed_queue = Queue(), Queue()
 

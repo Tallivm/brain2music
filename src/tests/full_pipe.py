@@ -19,6 +19,3 @@ if __name__ == "__main__":
     player_process.start()
 
     main_pipe(eeg_queue, play_queue, riffusion_model=riffusion_model)
-
-
-

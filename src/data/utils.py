@@ -1,11 +1,15 @@
+import os
 from io import BytesIO
 import numpy as np
+import pydub
 from pydub import AudioSegment
+from torch.multiprocessing import Queue
 import librosa as li
 from scipy.io import wavfile
 import skimage
 
-from src.constants import AUDIO_SAMPLE_RATE, SPECTROGRAM_MAX_VALUE
+from src.constants import AUDIO_SAMPLE_RATE, SPECTROGRAM_MAX_VALUE, SPECTROGRAM_POWER, DESIRED_DB, CROSSFADE_SAVE_MS, \
+    DEFAULT_SAVE_AUDIO_FOLDER
 
 
 def cut_array(arr: np.ndarray, segment_len: int, overlap_len: int) -> list[np.ndarray]:
@@ -57,8 +61,41 @@ def produce_audio_from_wave(wave: np.ndarray, normalize: bool = True) -> AudioSe
     return AudioSegment.from_wav(wav_bytes)
 
 
+def apply_audio_filters(audio: AudioSegment) -> AudioSegment:
+    segment = audio.apply_gain(DESIRED_DB - audio.dBFS)
+    segment = pydub.effects.normalize(
+        segment,
+        headroom=0.1,
+    )
+    return segment
+
+
 def save_pydub_audio_file(audio: AudioSegment, filepath: str) -> None:
     audio.export(filepath, format="wav")
+
+
+def save_audio_to_file(numbered_audio: tuple[int, AudioSegment],
+                       save_folder: str = DEFAULT_SAVE_AUDIO_FOLDER) -> AudioSegment:
+    """To use in Stream, saves produced audio with a respective number in name"""
+    number, audio = numbered_audio
+    audio.export(f'../../samples/outputs/{save_folder}/{number:04}.wav', 'wav')
+    return audio
+
+
+def combine_pydub_audio_from_queue(queue: Queue) -> AudioSegment:
+    combined = queue.get()
+    while not queue.empty():
+        combined = combined.append(queue.get(), crossfade=CROSSFADE_SAVE_MS)
+    return combined
+
+
+def combine_pydub_audio_from_folder(folder_path: str) -> AudioSegment:
+    audio_files = sorted(os.listdir(folder_path))
+    combined = AudioSegment.empty()
+    for f in audio_files:
+        segment = AudioSegment.from_wav(os.path.join(folder_path, f))
+        combined = combined.append(segment, crossfade=CROSSFADE_SAVE_MS)
+    return combined
 
 
 def normalize_spectrogram(s: np.ndarray) -> np.ndarray:
@@ -69,8 +106,11 @@ def invert_normalized_spectrogram(s: np.ndarray) -> np.ndarray:
     return 1 - s
 
 
-def normalize_spectrogram_with_max_power(s: np.ndarray) -> np.ndarray:
-    return normalize_spectrogram(s) * SPECTROGRAM_MAX_VALUE
+def normalize_spectrogram_with_max_power(s: np.ndarray, with_power: bool = False) -> np.ndarray:
+    normalized = normalize_spectrogram(s) * SPECTROGRAM_MAX_VALUE
+    if with_power:
+        normalized = np.power(normalized, SPECTROGRAM_POWER)
+    return normalized
 
 
 def normalize_spectrogram_for_image(s: np.ndarray) -> np.ndarray:
