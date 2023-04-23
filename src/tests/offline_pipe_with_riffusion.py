@@ -19,4 +19,4 @@ if __name__ == "__main__":
     player_process = Process(target=player, args=(play_queue,))
     player_process.start()
 
-    main_pipe(eeg_queue, play_queue, riffusion_model=riffusion_model)
+    main_pipe(eeg_queue, play_queue, riffusion_model=riffusion_model, measure_difference=True)

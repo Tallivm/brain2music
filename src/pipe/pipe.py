@@ -25,11 +25,12 @@ def preprocessing_pipe(eeg_queue: Queue, spectra_queue: Queue) -> None:
 
 
 def transform_spectrogram_pipe(spectra_queue: Queue, transformed_queue: Queue,
-                               riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None) -> None:
+                               riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None,
+                               measure_difference: bool = False) -> None:
     while True:
         if not spectra_queue.empty():
             spectrogram = spectra_queue.get()
-            transformed = transform_spectrogram(spectrogram, riffusion_model)
+            transformed = transform_spectrogram(spectrogram, riffusion_model, measure_difference)
             transformed_queue.put(transformed)
         else:
             time.sleep(0.5)
@@ -55,6 +56,7 @@ def main_pipe(
     eeg_queue: Queue,
     play_queue: Queue,
     riffusion_model: Optional[StableDiffusionImg2ImgPipeline] = None,
+    measure_difference: bool = False
 ) -> None:
     spectra_queue, transformed_queue = Queue(), Queue()
 
@@ -64,7 +66,7 @@ def main_pipe(
     preprocessing_process.start()
     afterparty_process.start()
 
-    transform_spectrogram_pipe(spectra_queue, transformed_queue, riffusion_model)
+    transform_spectrogram_pipe(spectra_queue, transformed_queue, riffusion_model, measure_difference=measure_difference)
 
 
 if __name__ == "__main__":

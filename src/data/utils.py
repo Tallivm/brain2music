@@ -9,7 +9,7 @@ from scipy.io import wavfile
 import skimage
 
 from src.constants import AUDIO_SAMPLE_RATE, SPECTROGRAM_MAX_VALUE, SPECTROGRAM_POWER, DESIRED_DB, CROSSFADE_SAVE_MS, \
-    DEFAULT_SAVE_AUDIO_FOLDER
+    DEFAULT_SAVE_AUDIO_FOLDER, ANTISPIKE_THRESHOLD
 
 
 def cut_array(arr: np.ndarray, segment_len: int, overlap_len: int) -> list[np.ndarray]:
@@ -59,6 +59,11 @@ def produce_audio_from_wave(wave: np.ndarray, normalize: bool = True) -> AudioSe
     wavfile.write(wav_bytes, rate=AUDIO_SAMPLE_RATE, data=wave.astype(np.int16))
     wav_bytes.seek(0)
     return AudioSegment.from_wav(wav_bytes)
+
+
+def postprocess_wave(wave: np.ndarray, threshold: float = ANTISPIKE_THRESHOLD) -> np.ndarray:
+    # wave = np.where(np.abs(wave) > threshold, np.sign(wave) * threshold, wave)
+    return wave
 
 
 def apply_audio_filters(audio: AudioSegment) -> AudioSegment:

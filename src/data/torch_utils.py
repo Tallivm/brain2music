@@ -5,7 +5,7 @@ import torchaudio
 import pydub
 
 from src.constants import AUDIO_SAMPLE_RATE, MIN_AUDIO_FREQUENCY, MAX_AUDIO_FREQUENCY, SPECTROGRAM_HEIGHT
-from src.data.utils import produce_audio_from_wave
+from src.data.utils import produce_audio_from_wave, postprocess_wave
 
 from typing import Optional
 
@@ -161,6 +161,7 @@ class SpectrogramConverter:
 
     def audio_from_spectrogram(self, spectrogram: np.ndarray, use_mel: bool = True) -> pydub.AudioSegment:
         wave = self.wave_from_spectrogram(spectrogram, use_mel)
+        wave = postprocess_wave(wave)
         return produce_audio_from_wave(wave)
 
     def amplitudes_from_waveform(self, waveform: torch.Tensor, use_mel: bool = True) -> torch.Tensor:

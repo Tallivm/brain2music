@@ -20,7 +20,7 @@ if __name__ == "__main__":
     save_spectrogram_as_image(spectrogram, '../../samples/eeg_sample_to_audio.png',
                               inverse=True, flip=True)
 
-    spectrogram = transform_spectrogram(spectrogram, riffusion_model=riffusion_model)
+    spectrogram = transform_spectrogram(spectrogram, riffusion_model=riffusion_model, measure_difference=True)
     audio = produce_audio_from_spectrogram_with_torch(spectrogram, converter)
     audio = apply_audio_filters(audio)
 

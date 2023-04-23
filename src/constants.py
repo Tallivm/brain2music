@@ -14,8 +14,8 @@ SPECTROGRAM_WIDTH = 512
 SPECTROGRAM_HEIGHT = 512
 SPECTROGRAM_SHIFT = 30  # shift frequencies to higher notes
 SPECTROGRAM_POWER = 4  # for converting it to audio
-SPECTROGRAM_MAX_VALUE = 25e6  # 30e6
-# MEL_NOTES = [51, 66, 76, 84, 91]
+SPECTROGRAM_MAX_VALUE = 30e6
+MEL_NOTES = [51, 66, 76, 91]
 NOTE_MASK = np.load('../../samples/c2_to_c6_mask.npy')
 
 # Model constants -------------
@@ -42,4 +42,5 @@ MAX_AUDIO_FREQUENCY = 10000
 PLAYBACK_SLEEP_TIME_S = 4.98
 DESIRED_DB = -12
 CROSSFADE_SAVE_MS = 500
+ANTISPIKE_THRESHOLD = 20e6
 DEFAULT_SAVE_AUDIO_FOLDER = 'uncombined'
