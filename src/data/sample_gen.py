@@ -2,18 +2,18 @@ import librosa as li
 import numpy as np
 from pandas import read_csv
 
-from src.constants import SAMPLE_RATE, SEGMENT_LEN_S, AUDIO_SAMPLE_RATE
+from src.constants import SAMPLE_RATE, SEGMENT_LEN_S, AUDIO_SAMPLE_RATE, SAMPLE_EEG_PATH
 from src.data.utils import segment_eeg
 
 
 def get_sample_eeg_segment() -> np.ndarray:
-    datapath = "../../samples/eeg_samples/UnicornRecorder_20220625_121622.csv"
+    datapath = SAMPLE_EEG_PATH
     data = read_csv(datapath).to_numpy()[:SAMPLE_RATE * SEGMENT_LEN_S, :8]
     return data
 
 
 def get_offline_eeg_segments() -> list[np.ndarray]:
-    datapath = "../../samples/eeg_samples/UnicornRecorder_20220625_121622.csv"
+    datapath = SAMPLE_EEG_PATH
     data = read_csv(datapath).to_numpy()[:, :8]
     segments = segment_eeg(data, sample_rate=SAMPLE_RATE, segment_len_s=SEGMENT_LEN_S, overlap_s=0)
     return segments

@@ -67,12 +67,12 @@ def postprocess_wave(wave: np.ndarray, threshold: float = ANTISPIKE_THRESHOLD) -
 
 
 def apply_audio_filters(audio: AudioSegment) -> AudioSegment:
-    segment = audio.apply_gain(DESIRED_DB - audio.dBFS)
-    segment = pydub.effects.normalize(
-        segment,
-        headroom=0.1,
-    )
-    return segment
+    # audio = pydub.effects.normalize(audio, headroom=0.1)
+    # audio = audio.apply_gain((DESIRED_DB + 2) - audio.dBFS)
+    # audio = pydub.effects.compress_dynamic_range(audio, threshold=-25.0, ratio=3.0, attack=10.0, release=100)
+    audio = audio.apply_gain(DESIRED_DB - audio.dBFS)
+    audio = pydub.effects.normalize(audio, headroom=0.1)
+    return audio
 
 
 def save_pydub_audio_file(audio: AudioSegment, filepath: str) -> None:

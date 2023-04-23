@@ -30,4 +30,3 @@ if __name__ == "__main__":
     save_spectrogram_as_image(spectrogram, '../../samples/eeg_sample_to_audio_riff.png',
                               inverse=True, flip=True)
     save_pydub_audio_file(audio, '../../samples/eeg_sample_to_audio_riff.wav')
-
