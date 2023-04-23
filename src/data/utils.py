@@ -91,8 +91,9 @@ def combine_pydub_audio_from_queue(queue: Queue) -> AudioSegment:
 
 def combine_pydub_audio_from_folder(folder_path: str) -> AudioSegment:
     audio_files = sorted(os.listdir(folder_path))
-    combined = AudioSegment.empty()
-    for f in audio_files:
+    assert len(audio_files) > 1, "No meaning in combining less than 2 files"
+    combined = AudioSegment.from_wav(os.path.join(folder_path, audio_files[0]))
+    for f in audio_files[1:]:
         segment = AudioSegment.from_wav(os.path.join(folder_path, f))
         combined = combined.append(segment, crossfade=CROSSFADE_SAVE_MS)
     return combined
