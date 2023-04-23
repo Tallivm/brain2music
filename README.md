@@ -9,15 +9,13 @@ graph TB
     C -->D[Raw Spectrogram]
     D -->|Riffusion| E[Transformed Spectrogram]
     E -->|Torch| F[Wave]
-    F -->|Rave| G[Transformed Wave]
-    G -->H[Audio]
+    F -->H[Audio]
     H -->I[Play]
     
     subgraph Transformations 
         D
         E
         F
-        G
     end
 ```
 
