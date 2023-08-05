@@ -19,10 +19,13 @@ from typing import Optional
 def preprocessing_pipe(eeg_queue: Queue, spectra_queue: Queue, parameter_queue: Queue) -> None:
     stream = Stream()
     stream.map(extract_all_features).map(combine_spectrograms).sink(spectra_queue.put)
+    last_params = None
 
     while True:
+        if not parameter_queue.empty():
+            last_params = parameter_queue.get()
         if not eeg_queue.empty():
-            stream.emit((eeg_queue.get(), parameter_queue.get()))
+            stream.emit((eeg_queue.get(), last_params))
         else:
             time.sleep(0.5)
 
