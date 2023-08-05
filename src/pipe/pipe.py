@@ -19,7 +19,7 @@ from typing import Optional
 def preprocessing_pipe(eeg_queue: Queue, spectra_queue: Queue, parameter_queue: Queue) -> None:
     stream = Stream()
     stream.map(extract_all_features).map(combine_spectrograms).sink(spectra_queue.put)
-    last_params = None
+    last_params = {i: ChannelParameters() for i in range(N_CHANNELS)}
 
     while True:
         if not parameter_queue.empty():
