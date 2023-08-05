@@ -1,3 +1,4 @@
+dash==2.11.1
 numpy==1.23.5
 scikit-image==0.20.0
 scipy==1.10.1
@@ -9,4 +10,6 @@ torch==2.0.0+cu118
 torchaudio==2.0.1+cu118
 diffusers>=0.9.0
 streamz==0.6.4
-transformers
+Pillow~=9.5.0
+tqdm~=4.65.0
+matplotlib~=3.7.1
