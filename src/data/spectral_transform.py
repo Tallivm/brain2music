@@ -10,9 +10,9 @@ from src.data.ai_models import run_rave, run_riffusion
 from typing import Optional
 
 
-def build_spectrogram_from_eeg_features(eeg_features: list[np.ndarray]) -> np.ndarray:
+def combine_spectrograms(spectrograms: list[np.ndarray]) -> np.ndarray:
     """Build a spectrogram out of collected EEG features"""
-    spectrogram = np.mean(np.array(eeg_features), axis=0)
+    spectrogram = np.mean(np.array(spectrograms), axis=0)
     spectrogram = resize_image(spectrogram, SPECTROGRAM_WIDTH, SPECTROGRAM_HEIGHT)
     # TODO: think of a better building instead of just channel averaging
     return spectrogram

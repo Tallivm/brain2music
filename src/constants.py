@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.signal import butter
 
+
+N_CHANNELS = 8
+
 # EEG constants ---------------
 MIN_EEG_FREQUENCY = 0.5
 MAX_EEG_FREQUENCY = 40

@@ -4,17 +4,19 @@ from tqdm import tqdm
 import skimage
 
 from src.data.eeg_features import extract_features
-from src.data.spectral_transform import build_spectrogram_from_eeg_features
+from src.data.spectral_transform import combine_spectrograms
 from src.data.utils import save_spectrogram_as_image, segment_eeg, normalize_spectrogram_for_image
 from src.data.torch_utils import SpectrogramConverter
-from src.constants import SAMPLE_EEG_PATH, SAMPLE_RATE, SEGMENT_LEN_S
+from src.constants import SAMPLE_EEG_PATH, SAMPLE_RATE, SEGMENT_LEN_S, N_CHANNELS
+from src.parameters import ChannelParameters
 
 
 if __name__ == "__main__":
     converter = SpectrogramConverter()
+    parameters = {i: ChannelParameters() for i in range(N_CHANNELS)}
 
     datapath = SAMPLE_EEG_PATH
-    data = read_csv(datapath).to_numpy()[:, :8]
+    data = read_csv(datapath).to_numpy()[:, :N_CHANNELS]
     fps = 0.4
     eeg_segments = segment_eeg(data, sample_rate=SAMPLE_RATE, segment_len_s=SEGMENT_LEN_S,
                                overlap_s=SEGMENT_LEN_S - 1/fps)
@@ -31,8 +33,11 @@ if __name__ == "__main__":
             os.makedirs(f'{base_path}/{color}_{noise}/', exist_ok=True)
 
     for i, segment in tqdm(enumerate(eeg_segments), total=len(eeg_segments)):
-        features = extract_features(segment)
-        spectrogram = build_spectrogram_from_eeg_features(features)
+        spectrograms = []
+        for ch in range(N_CHANNELS):
+            spectrogram = extract_features(segment, ch=ch, channel_params=parameters[ch])
+            spectrograms.append(spectrogram)
+        spectrogram = combine_spectrograms(spectrograms)
 
         for color in ['black', 'white']:
             save_spectrogram_as_image(spectrogram, f'{base_path}/{color}_clean/{i}.png',
