@@ -1,9 +1,9 @@
 import os
+import re
 from io import BytesIO
 import numpy as np
 import pydub
 from pydub import AudioSegment
-from torch.multiprocessing import Queue
 import librosa as li
 from scipy.io import wavfile
 import skimage
@@ -18,7 +18,6 @@ def cut_array(arr: np.ndarray, segment_len: int, overlap_len: int) -> list[np.nd
     for i in range(0, arr_len - segment_len + 1, segment_len - overlap_len):
         sample = arr[i:i + segment_len]
         samples.append(sample)
-
     return samples
 
 
@@ -87,7 +86,7 @@ def save_audio_to_file(numbered_audio: tuple[int, AudioSegment],
     return audio
 
 
-def combine_pydub_audio_from_queue(queue: Queue) -> AudioSegment:
+def combine_pydub_audio_from_queue(queue) -> AudioSegment:  # queue: torch.Queue
     combined = queue.get()
     while not queue.empty():
         combined = combined.append(queue.get(), crossfade=CROSSFADE_SAVE_MS)
@@ -123,10 +122,21 @@ def normalize_spectrogram_for_image(s: np.ndarray) -> np.ndarray:
     return (normalize_spectrogram(s) * 255).astype('uint8')
 
 
-def save_spectrogram_as_image(s: np.ndarray, filepath: str, inverse: bool = False, flip: bool = False) -> None:
+def save_spectrogram_as_image(s: np.ndarray, filepath: str, inverse: bool = False, flip: bool = False,
+                              as_rgb: bool = False) -> None:
     s_img = normalize_spectrogram_for_image(s)
     if inverse:
         s_img = 255 - s_img
     if flip:
         s_img = np.flipud(s_img)
+    if as_rgb:
+        s_img = np.tile(np.expand_dims(s_img, axis=-1), 3)
     skimage.io.imsave(filepath, s_img)
+
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+
+def natural_keys(text):
+    return [atoi(c) for c in re.split(r'(\d+)', text)]
