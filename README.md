@@ -1,5 +1,9 @@
 # brain2music
-A Python and SD pipeline to convert EEG data to music in real time
+A Python and SD pipeline to convert EEG data to music in real time while keeping as much original brain wave features as possible.
+
+This is not one of those projects where AI guesses your mood and writes a pop-song for it. Stable Diffusion was only used to make the generated sound somewhat more pleasant to the ear.
+
+The pipeline works with the Unicorn Hybrid Black EEG headset (by g.tec).
 
 ## Pipeline Overview
 
